@@ -218,16 +218,19 @@
   const EMBER_PNG = "enemy-ember.png";
   const REAVER_PNG = "enemy-reaver.png";
   const VORRAK_PNG = "boss-vorrak.png";
+  const JOHNSON_PNG = "sergeant-johnson.png";
   const spartanImg = new Image();
   const arenaImg = new Image();
   const emberImg = new Image();
   const reaverImg = new Image();
   const vorrakImg = new Image();
+  const johnsonImg = new Image();
   let spartanReady = false;
   let arenaReady = false;
   let emberReady = false;
   let reaverReady = false;
   let vorrakReady = false;
+  let johnsonReady = false;
   const suitSprites = Object.create(null);
   let stingerSpr = null;
   spartanImg.onload = function () { spartanReady = true; };
@@ -235,14 +238,17 @@
   emberImg.onload = function () { emberReady = true; };
   reaverImg.onload = function () { reaverReady = true; };
   vorrakImg.onload = function () { vorrakReady = true; };
+  johnsonImg.onload = function () { johnsonReady = true; };
   emberImg.onerror = function () { emberReady = false; };
   reaverImg.onerror = function () { reaverReady = false; };
   vorrakImg.onerror = function () { vorrakReady = false; };
+  johnsonImg.onerror = function () { johnsonReady = false; };
   spartanImg.src = SPARTAN_PNG;
   arenaImg.src = ARENA_PNG;
   emberImg.src = EMBER_PNG;
   reaverImg.src = REAVER_PNG;
   vorrakImg.src = VORRAK_PNG;
+  johnsonImg.src = JOHNSON_PNG;
 
   const SUITS = {
     olive:   { body: "#3f6a28", dark: "#243e16", light: "#6a9a3e", trim: "#2c2410", visor: "#f0b429", name: "OLIVE" },
@@ -264,6 +270,9 @@
   let ac = null;
   let last = 0;
   let shake = 0;
+  let hitStop = 0;
+  let hitFlash = 0;
+  let hitTint = 1;
   let banner = "";
   let bannerT = 0;
   let score = 0;
@@ -358,6 +367,8 @@
   const enemies = [];
   const pickups = [];
   let crate = null;
+  let johnson = null;
+  let johnsonBeaconSpawned = false;
 
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -457,6 +468,84 @@
 
   function toast(msg, t) { banner = msg; bannerT = t || 2.2; }
 
+  function extractJohnson(showToast) {
+    if (!johnson) return;
+    burst(johnson.x + johnson.w / 2, johnson.y + johnson.h / 2, 20, ["#5eead4", "#60a5fa", "#fff"], 260, 0.45);
+    johnson = null;
+    if (showToast !== false && state === "play") toast("JOHNSON EXTRACTED", 2.2);
+  }
+
+  function summonJohnson() {
+    if (johnson) {
+      johnson.timer = 20;
+      johnson.hp = johnson.maxHp;
+      johnson.inv = 0.7;
+    } else {
+      const x = clamp(player.x + (player.face >= 0 ? 180 : -180), 50, WORLD - 100);
+      johnson = { x:x, y:-150, w:56, h:104, vx:0, vy:120, face:player.face, onG:false, hp:140, maxHp:140, timer:20, cool:0.25, inv:0.8, muzzle:0, aim:0 };
+    }
+    toast("SERGEANT JOHNSON INBOUND", 2.5);
+    beep(240, 0.08, "square", 0.06, 480);
+    setTimeout(function () { beep(360, 0.11, "square", 0.05, 720); }, 100);
+  }
+
+  function hurtJohnson(dmg) {
+    if (!johnson || johnson.inv > 0) return;
+    johnson.hp -= dmg;
+    johnson.inv = 0.16;
+    burst(johnson.x + johnson.w / 2, johnson.y + 42, 6, ["#5eead4", "#fff", "#f0b429"], 150, 0.28);
+    if (johnson.hp <= 0) extractJohnson(true);
+  }
+
+  function johnsonShoot(target) {
+    if (!johnson || !target) return;
+    const ox = johnson.x + johnson.w / 2 + johnson.face * 62;
+    const oy = johnson.y + 43;
+    const tx = target.x + target.w / 2, ty = target.y + target.h * 0.42;
+    const dx = tx - ox, dy = ty - oy, len = Math.hypot(dx, dy) || 1;
+    const b = bullets.get();
+    b.x = ox; b.y = oy; b.vx = dx / len * 920; b.vy = dy / len * 920;
+    b.r = 4; b.life = 0.85; b.dmg = 16; b.friendly = 1; b.homing = 0; b.kind = "johnson"; b.color = "#7dd3fc";
+    johnson.aim = Math.atan2(dy, dx); johnson.face = dx >= 0 ? 1 : -1; johnson.muzzle = 0.09; johnson.cool = 0.42;
+    beep(360, 0.035, "square", 0.025, 180);
+  }
+
+  function updateJohnson(dt) {
+    if (!johnson) return;
+    const j = johnson;
+    j.timer -= dt;
+    if (j.timer <= 0) { extractJohnson(true); return; }
+    if (j.inv > 0) j.inv -= dt;
+    if (j.cool > 0) j.cool -= dt;
+    if (j.muzzle > 0) j.muzzle -= dt;
+    let target = null, best = 1e9;
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      const d = Math.hypot(e.x + e.w / 2 - (j.x + j.w / 2), e.y + e.h / 2 - (j.y + j.h / 2));
+      if (d < best) { best = d; target = e; }
+    }
+    const followX = clamp(player.x - player.face * 86, 40, WORLD - j.w - 40);
+    const fd = followX - j.x;
+    if (Math.abs(fd) > 34) j.vx += Math.sign(fd) * 950 * dt;
+    else j.vx *= Math.max(0, 1 - 8 * dt);
+    j.vx = clamp(j.vx, -205, 205);
+    if (target && best < 720) {
+      j.face = target.x + target.w / 2 >= j.x + j.w / 2 ? 1 : -1;
+      if (j.cool <= 0 && j.y > -20) johnsonShoot(target);
+    } else if (Math.abs(fd) > 8) j.face = fd >= 0 ? 1 : -1;
+    j.vy += 1500 * dt;
+    j.x += j.vx * dt; j.y += j.vy * dt;
+    collideActor(j);
+    j.x = clamp(j.x, 40, WORLD - j.w - 40);
+  }
+
+  function punch(stop, flash, shakeAmt, tint) {
+    hitStop = Math.max(hitStop, stop || 0);
+    hitFlash = Math.max(hitFlash, flash || 0);
+    if (shakeAmt) shake = Math.max(shake, shakeAmt);
+    if (tint != null) hitTint = tint;
+  }
+
   function setWep(i) {
     if (i === 4 && !store.gun) { toast("LOCKED — find the A crate", 1.6); return; }
     player.wep = i;
@@ -504,8 +593,10 @@
     score = 0; wave = 0; waveAlive = 0; spawnQ.length = 0; spawnT = 0; won = false;
     pendingWave = 0; nextWaveAt = 0; pendingBoss = 0; nextBossAt = 0;
     pendingWin = 0; winAt = 0; crestSpawned = false; shieldChime = false; beams.length = 0;
-    camX = 0; shake = 0; jumpHeld = false; jumpWas = false; jumpBuf = 0; coyote = 0;
+    camX = 0; shake = 0; hitStop = 0; hitFlash = 0; hitTint = 1;
+    jumpHeld = false; jumpWas = false; jumpBuf = 0; coyote = 0;
     bullets.killAll(); particles.killAll(); enemies.length = 0; pickups.length = 0;
+    johnson = null; johnsonBeaconSpawned = false;
     crate = { x: 880, y: 424, w: 44, h: 44, hp: 30, live: true };
     syncWepUI(); syncSuitUI();
     startWave(1);
@@ -529,11 +620,21 @@
     spawnT = n === 1 ? 0.22 : 0.35;
     waveAlive = list.length;
     toast("WAVE " + n, 1.6);
+    if (n === 1 && !johnsonBeaconSpawned) {
+      johnsonBeaconSpawned = true;
+      // Guaranteed, immediately visible on Austin's opening ground route.
+      const bx = clamp(player.x + 150, 70, WORLD - 122);
+      pickups.push({ x:bx, y:-70, w:52, h:58, vy:105, kind:"johnson" });
+      setTimeout(function () { if (state === "play" && wave === 1) toast("JOHNSON BEACON DEPLOYED", 4.8); }, 250);
+    } else if (n === 3 && Math.random() < 0.5) {
+      const bx = clamp(player.x + (player.face >= 0 ? 320 : -320), 70, WORLD - 122);
+      pickups.push({ x:bx, y:-70, w:52, h:58, vy:105, kind:"johnson" });
+    }
     beep(196, 0.12, "sawtooth", 0.05, 392);
   }
 
   function spawnEnemy(spec) {
-    const e = { type: spec.type, x: spec.x, vx: 0, vy: 0, face: -1, cool: rnd(0.3, 1.2), t: rnd(0, 10), hit: 0 };
+    const e = { type: spec.type, x: spec.x, vx: 0, vy: 0, face: -1, cool: rnd(0.3, 1.2), t: rnd(0, 10), hit: 0, kbx: 0, kby: 0 };
     if (spec.type === "ember") {
       e.w = 36; e.h = 42; e.y = GROUND - e.h; e.hp = 28; e.spd = 55; e.range = 300; e.score = 100;
     } else if (spec.type === "reaver") {
@@ -549,7 +650,8 @@
     player.lastHit = performance.now() / 1000;
     player.inv = 0.4;
     shieldChime = false;
-    shake = Math.max(shake, 7);
+    shake = Math.max(shake, 9);
+    punch(0.04, 0.2, 0, 0);
     if (player.sh > 0) {
       const spill = dmg - player.sh;
       player.sh = Math.max(0, player.sh - dmg);
@@ -579,6 +681,7 @@
     const bossKill = e.type === "vorrak";
     const cols = bossKill ? ["#f6e2a0", "#7cf0ff", "#c084fc", "#fff"] : e.type === "reaver" ? ["#c084fc", "#7cf0ff", "#fff"] : e.type === "stinger" ? ["#5eead4", "#fff", "#f0b429"] : ["#fb923c", "#fde68a", "#fff"];
     burst(e.x + e.w / 2, e.y + e.h / 2, bossKill ? 52 : 22, cols, bossKill ? 420 : 300, bossKill ? 0.85 : 0.55);
+    punch(bossKill ? 0.08 : 0.034, bossKill ? 0.22 : 0.1, bossKill ? 10 : 5, 1);
     noise(bossKill ? 0.22 : 0.12, bossKill ? 0.1 : 0.07);
     enemies.splice(idx, 1);
     if (waveAlive === 0 && spawnQ.length === 0 && state === "play" && !pendingWave && !pendingBoss) {
@@ -606,10 +709,30 @@
     }
   }
 
-  function hurtEnemy(e, dmg) {
+  function hurtEnemy(e, dmg, ix, iy, dirx, diry) {
+    let nx, ny;
+    if (dirx != null && diry != null && (dirx || diry)) {
+      const L = Math.hypot(dirx, diry) || 1;
+      nx = dirx / L; ny = diry / L;
+    } else {
+      const cx = e.x + e.w / 2, cy = e.y + e.h / 2;
+      const px = ix == null ? player.x + player.w / 2 : ix;
+      const py = iy == null ? player.y + player.h / 2 : iy;
+      nx = cx - px; ny = cy - py;
+      const L = Math.hypot(nx, ny) || 1;
+      nx /= L; ny /= L;
+    }
+    const force = e.type === "vorrak" ? 70 : (e.type === "reaver" ? 240 : 300);
+    const scale = 0.55 + Math.min(1.1, dmg / 36);
+    e.kbx = (e.kbx || 0) + nx * force * scale;
+    e.kby = (e.kby || 0) + ny * force * 0.32 * scale;
+    if (e.type !== "stinger" && e.type !== "vorrak") e.vy -= 36 + Math.min(90, dmg * 0.7);
+    e.hit = e.type === "vorrak" ? 0.15 : 0.18;
+    if (dmg >= 50) punch(0.05, 0.13, 8, 1);
+    else if (dmg >= 18) punch(0.026, 0.08, 4, 1);
+    else punch(0.014, 0.055, 2, 1);
     if (e.type === "vorrak" && e.shield > 0) {
       e.shield = Math.max(0, e.shield - dmg);
-      e.hit = 0.1;
       if (e.shield <= 0) {
         e.phase = "stagger";
         e.phaseT = 1.55;
@@ -617,6 +740,7 @@
         e.atkT = 0;
         toast("CREST SHATTERED", 1.8);
         shake = Math.max(shake, 14);
+        punch(0.07, 0.18, 14, 1);
         burst(e.x + e.w / 2, e.y + 50, 28, ["#f6e2a0", "#7cf0ff", "#fff"], 340, 0.55);
         beep(180, 0.12, "sawtooth", 0.07, 60);
         noise(0.1, 0.08);
@@ -625,7 +749,6 @@
     }
     const mul = (e.type === "vorrak" && e.phase === "exposed") ? 1.35 : 1;
     e.hp -= dmg * mul;
-    e.hit = 0.1;
     return e.hp <= 0;
   }
 
@@ -639,7 +762,7 @@
       vx: 0, vy: 0, face: player.x < x ? -1 : 1,
       hp: 300, maxHp: 300, shield: 160, maxShield: 160,
       phase: "shield", phaseT: 0, atk: "", atkT: 0, slamX: x,
-      cool: 1.4, t: 0, hit: 0, spd: 72, range: 360, score: 2500
+      cool: 1.4, t: 0, hit: 0, kbx: 0, kby: 0, spd: 72, range: 360, score: 2500
     });
     waveAlive += 1;
     toast("TARTARUS", 2.1);
@@ -714,12 +837,13 @@
         const y0 = e.y + 48;
         const x0 = e.x + e.w / 2;
         const x1 = x0 + e.face * 980;
-        beams.push({ x0: x0, y0: y0, x1: x1, y1: y0, life: 0.22, max: 0.22, color: "#ffe08a" });
+        beams.push({ x0: x0, y0: y0, x1: x1, y1: y0, life: 0.28, max: 0.28, color: "#ffe08a", wide: 1.6 });
         const py = player.y + player.h * 0.45, px = player.x + player.w / 2;
         const onLine = Math.abs(py - y0) < 40;
         const inBeam = e.face > 0 ? (px > x0 && px < x1) : (px < x0 && px > x1);
         if (onLine && inBeam) hurtPlayer(24);
-        shake = Math.max(shake, 10);
+        shake = Math.max(shake, 12);
+        punch(0.045, 0.12, 0, 0);
         beep(90, 0.14, "sawtooth", 0.07, 40);
         noise(0.08, 0.06);
         e.atk = "";
@@ -729,8 +853,9 @@
       e.atkT -= dt;
       e.vx = 0;
       if (e.atkT <= 0) {
+        const air = 0.83;
         e.vy = -620;
-        e.vx = e.face * 240;
+        e.vx = clamp((e.slamX - (e.x + e.w / 2)) / air, -400, 400);
         e.atk = "slamair";
         e.slamArmed = 0;
       }
@@ -741,9 +866,13 @@
       else if (adx < 180) e.vx = -e.face * e.spd * 0.55;
       else e.vx = Math.sin(e.t * 1.6) * e.spd * 0.35;
       if (e.cool <= 0) {
-        if (adx < 170) { e.atk = "slam"; e.atkT = 0.72; e.slamX = player.x + player.w / 2; }
-        else if (Math.random() < 0.5) { e.atk = "lance"; e.atkT = 0.88; }
-        else { bossBolts(e); e.cool = 1.15; }
+        if (adx < 170) {
+          e.atk = "slam"; e.atkT = 0.80; e.slamX = player.x + player.w / 2;
+          beep(64, 0.12, "square", 0.055, 36);
+        } else if (Math.random() < 0.5) {
+          e.atk = "lance"; e.atkT = 0.95;
+          beep(150, 0.09, "sawtooth", 0.05, 70);
+        } else { bossBolts(e); e.cool = 1.15; }
       }
     }
 
@@ -755,8 +884,10 @@
       if (!e.onG) e.slamArmed = 1;
     }
     if (e.atk === "slamair" && e.onG && e.slamArmed) {
-      shake = Math.max(shake, 16);
-      burst(e.x + e.w / 2, GROUND - 4, 20, ["#f6e2a0", "#c9a24a", "#fff"], 260, 0.4);
+      shake = Math.max(shake, 18);
+      punch(0.05, 0.14, 0, 0);
+      burst(e.x + e.w / 2, GROUND - 4, 28, ["#f6e2a0", "#c9a24a", "#fff"], 300, 0.48);
+      puff(e.x + e.w / 2, GROUND - 2, 8, ["#6a4a28", "#c9a24a", "#3a2c20"]);
       bossShock(e, -1); bossShock(e, 1);
       if (Math.abs((player.x + player.w / 2) - (e.x + e.w / 2)) < 110) hurtPlayer(22);
       beep(70, 0.16, "sawtooth", 0.08, 40);
@@ -891,7 +1022,8 @@
 
   function enemyShoot(e) {
     const b = bullets.get();
-    const tx = player.x + player.w / 2, ty = player.y + 36;
+    const shotTarget = johnson && Math.random() < 0.28 ? johnson : player;
+    const tx = shotTarget.x + shotTarget.w / 2, ty = shotTarget.y + shotTarget.h * 0.38;
     const dx = tx - (e.x + e.w / 2), dy = ty - (e.y + e.h / 2);
     const len = Math.hypot(dx, dy) || 1;
     const spd = e.type === "reaver" ? 340 : 280;
@@ -996,34 +1128,45 @@
       spawnT = wave === 1 ? 0.38 : 0.42;
     }
 
+    updateJohnson(dt);
+
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
       e.t += dt; if (e.hit > 0) e.hit -= dt;
+      if (e.kbx) e.kbx *= Math.max(0, 1 - 6.5 * dt);
+      if (e.kby) e.kby *= Math.max(0, 1 - 6.5 * dt);
       const pcx = player.x + player.w / 2;
       const ecx = e.x + e.w / 2;
       const dx = pcx - ecx;
-      e.face = dx >= 0 ? 1 : -1;
+      const locking = e.type === "vorrak" && (e.atk === "lance" || e.atk === "slam" || e.atk === "slamair");
+      if (!locking) e.face = dx >= 0 ? 1 : -1;
       if (e.type === "vorrak") {
         updateVorrak(e, dt, dx);
+        e.x += (e.kbx || 0) * dt;
+        e.x = clamp(e.x, 40, WORLD - 120);
         if (aabb(e, player)) hurtPlayer(20);
       } else if (e.type === "stinger") {
+        e.baseY += (e.kby || 0) * dt;
         e.y = e.baseY + Math.sin(e.t * 2.6) * 36;
-        e.x += Math.sin(e.t * 1.1) * 70 * dt + Math.sign(dx) * 34 * dt;
+        e.x += Math.sin(e.t * 1.1) * 70 * dt + Math.sign(dx) * 34 * dt + (e.kbx || 0) * dt;
         e.cool -= dt;
         if (e.cool <= 0 && Math.abs(dx) < e.range) { enemyShoot(e); e.cool = 1.15; }
       } else {
         const adx = Math.abs(dx);
-        if (adx > e.range) e.vx = e.face * e.spd;
+        if (e.hit > 0.06) e.vx = e.kbx || 0;
+        else if (adx > e.range) e.vx = e.face * e.spd;
         else if (adx < e.range * 0.55) e.vx = -e.face * e.spd * 0.6;
         else e.vx = (e.type === "reaver" ? Math.sin(e.t * 3) * e.spd : 0);
         e.vy += 1500 * dt;
-        e.x += e.vx * dt; e.y += e.vy * dt;
+        e.x += e.vx * dt + ((e.hit > 0.06) ? 0 : (e.kbx || 0) * dt);
+        e.y += e.vy * dt;
         collideActor(e);
         if (e.type === "reaver" && e.onG && player.y + 20 < e.y && Math.random() < 0.01) e.vy = -520;
         e.cool -= dt;
         if (e.cool <= 0 && adx < e.range + 40) { enemyShoot(e); e.cool = e.type === "reaver" ? 0.85 : 1.45; }
       }
       if (e.type !== "vorrak" && aabb(e, player)) hurtPlayer(e.type === "reaver" ? 18 : 12);
+      if (johnson && aabb(e, johnson)) hurtJohnson(e.type === "vorrak" ? 20 : e.type === "reaver" ? 14 : 8);
     }
 
     bullets.each((b) => {
@@ -1060,9 +1203,15 @@
           burst(b.x, b.y, 5, ["#f6e2a0", "#fff"], 120, 0.2);
           return false;
         }
-      } else if (b.x + b.r > player.x && b.x - b.r < player.x + player.w && b.y + b.r > player.y && b.y - b.r < player.y + player.h) {
-        hurtPlayer(b.dmg);
-        return false;
+      } else {
+        if (johnson && b.x + b.r > johnson.x && b.x - b.r < johnson.x + johnson.w && b.y + b.r > johnson.y && b.y - b.r < johnson.y + johnson.h) {
+          hurtJohnson(b.dmg);
+          return false;
+        }
+        if (b.x + b.r > player.x && b.x - b.r < player.x + player.w && b.y + b.r > player.y && b.y - b.r < player.y + player.h) {
+          hurtPlayer(b.dmg);
+          return false;
+        }
       }
       return true;
     });
@@ -1079,6 +1228,7 @@
       if (p.y + p.h > GROUND) { p.y = GROUND - p.h; p.vy = 0; }
       if (aabb(p, player)) {
         if (p.kind === "gun") { unlockGun(); unlockSuit(); }
+        else if (p.kind === "johnson") summonJohnson();
         pickups.splice(i, 1);
       }
     }
@@ -1130,6 +1280,8 @@
     c.arcTo(x, y, x + w, y, r);
     c.closePath();
   }
+
+  function drawJohnsonBeacon(p) { const pulse = 0.5 + Math.sin(performance.now() / 105) * 0.5; const cx = p.x + p.w / 2, beamTop = 38; ctx.save(); ctx.globalCompositeOperation = "lighter"; const column = ctx.createLinearGradient(cx, beamTop, cx, p.y + p.h); column.addColorStop(0, "rgba(96,165,250,0.04)"); column.addColorStop(0.35, "rgba(96,165,250," + (0.18 + pulse * 0.12) + ")"); column.addColorStop(1, "rgba(94,234,212," + (0.42 + pulse * 0.24) + ")"); ctx.fillStyle = column; ctx.fillRect(cx - 18 - pulse * 5, beamTop, 36 + pulse * 10, Math.max(0, p.y + p.h - beamTop)); ctx.fillStyle = "rgba(94,234,212," + (0.24 + pulse * 0.24) + ")"; ctx.beginPath(); ctx.arc(cx, p.y + p.h / 2, 48 + pulse * 12, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = "rgba(125,211,252," + (0.75 + pulse * 0.25) + ")"; ctx.lineWidth = 4 + pulse * 3; ctx.beginPath(); ctx.arc(cx, p.y + p.h / 2, 34 + pulse * 9, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); ctx.save(); ctx.fillStyle = "#082f35"; rr(ctx, p.x + 5, p.y + 7, p.w - 10, p.h - 7, 8); ctx.fill(); ctx.strokeStyle = "#d9fffb"; ctx.lineWidth = 3; rr(ctx, p.x + 5, p.y + 7, p.w - 10, p.h - 7, 8); ctx.stroke(); ctx.fillStyle = pulse > 0.5 ? "#5eead4" : "#60a5fa"; ctx.fillRect(p.x + 9, p.y + 11, p.w - 18, 8); ctx.fillStyle = "#7dd3fc"; ctx.beginPath(); ctx.arc(cx, p.y + 31, 9 + pulse * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#d9fffb"; ctx.beginPath(); ctx.arc(cx, p.y + 31, 4, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = "#d9fffb"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x + 9, p.y + p.h); ctx.lineTo(p.x + 1, p.y + p.h + 9); ctx.moveTo(p.x + p.w - 9, p.y + p.h); ctx.lineTo(p.x + p.w - 1, p.y + p.h + 9); ctx.stroke(); const arrowY = Math.max(78, p.y - 66 - pulse * 8); ctx.fillStyle = "#5eead4"; ctx.beginPath(); ctx.moveTo(cx - 18, arrowY); ctx.lineTo(cx + 18, arrowY); ctx.lineTo(cx, arrowY + 25); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3; ctx.stroke(); ctx.font = "bold 20px Impact, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const label = "CALL JOHNSON", labelY = arrowY - 25, labelW = ctx.measureText(label).width + 24; ctx.fillStyle = "rgba(3,20,28,0.9)"; rr(ctx, cx - labelW / 2, labelY - 16, labelW, 31, 7); ctx.fill(); ctx.strokeStyle = pulse > 0.5 ? "#5eead4" : "#60a5fa"; ctx.lineWidth = 3; rr(ctx, cx - labelW / 2, labelY - 16, labelW, 31, 7); ctx.stroke(); ctx.fillStyle = "#ffffff"; ctx.fillText(label, cx, labelY); ctx.restore(); }
 
   function drawWorld() {
     ctx.fillStyle = "#120c0a";
@@ -1206,15 +1358,19 @@
     }
     for (let i = 0; i < pickups.length; i++) {
       const p = pickups[i];
-      ctx.fillStyle = "#ffb020";
-      ctx.beginPath(); ctx.arc(p.x + 14, p.y + 14, 14, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#1a1008";
-      ctx.font = "bold 16px Impact, system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("A", p.x + 14, p.y + 20);
+      if (p.kind === "johnson") {
+        drawJohnsonBeacon(p);
+      } else {
+        ctx.fillStyle = "#ffb020";
+        ctx.beginPath(); ctx.arc(p.x + 14, p.y + 14, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#1a1008";
+        ctx.font = "bold 16px Impact, system-ui, sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("A", p.x + 14, p.y + 20);
+      }
     }
 
     for (let i = 0; i < enemies.length; i++) drawEnemy(enemies[i]);
+    if (johnson) drawJohnson(johnson);
     drawSpartan(player);
     for (let i = 0; i < beams.length; i++) {
       const bm = beams[i];
@@ -1379,6 +1535,43 @@
       ctx.restore();
     }
     ctx.restore();
+    ctx.restore();
+  }
+
+  function drawJohnson(j) {
+    const t = performance.now() / 1000;
+    const cx = j.x + j.w / 2, feet = j.y + j.h;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.42)"; ctx.beginPath(); ctx.ellipse(cx + 5, feet + 4, 27, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(cx, feet); ctx.scale(j.face, 1);
+    if (j.inv > 0 && (t * 20 | 0) % 2 === 0) ctx.globalAlpha = 0.55;
+    const dh = 154;
+    if (johnsonReady && johnsonImg.naturalWidth) {
+      const dw = dh * johnsonImg.naturalWidth / johnsonImg.naturalHeight;
+      ctx.drawImage(johnsonImg, -dw * 0.38, -dh, dw, dh);
+    } else {
+      ctx.fillStyle = "#293d2b"; rr(ctx, -18, -72, 36, 48, 7); ctx.fill();
+      ctx.fillStyle = "#61724a"; rr(ctx, -20, -66, 40, 13, 4); ctx.fill();
+      ctx.fillStyle = "#27352a"; rr(ctx, -15, -101, 30, 29, 10); ctx.fill();
+      ctx.fillStyle = "#6b442d"; ctx.beginPath(); ctx.arc(0, -88, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#17201a"; rr(ctx, -14, -28, 12, 28, 4); ctx.fill(); rr(ctx, 3, -28, 12, 28, 4); ctx.fill();
+      ctx.fillStyle = "#20282a"; rr(ctx, 8, -65, 62, 10, 3); ctx.fill();
+      ctx.fillStyle = "#5eead4"; ctx.fillRect(-14, -68, 5, 12);
+    }
+    if (j.muzzle > 0) {
+      const mx = 70, my = -68;
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      const g = ctx.createRadialGradient(mx, my, 1, mx, my, 25);
+      g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.28, "rgba(125,211,252,0.9)"); g.addColorStop(1, "rgba(94,234,212,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(mx, my, 25, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#d9fffb"; ctx.beginPath(); ctx.moveTo(mx - 2, my); ctx.lineTo(mx + 23, my - 6); ctx.lineTo(mx + 23, my + 6); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.fillStyle = "#5eead4"; ctx.beginPath(); ctx.moveTo(cx, j.y - 24); ctx.lineTo(cx - 7, j.y - 34); ctx.lineTo(cx + 7, j.y - 34); ctx.closePath(); ctx.fill();
+    ctx.textAlign = "center"; ctx.font = "bold 13px Impact, system-ui, sans-serif"; ctx.fillStyle = "#b9fff6"; ctx.fillText("SGT. JOHNSON", cx, j.y - 39);
+    ctx.fillStyle = "rgba(8,24,26,0.75)"; rr(ctx, cx - 35, j.y - 19, 70, 5, 2); ctx.fill();
+    ctx.fillStyle = "#60a5fa"; rr(ctx, cx - 35, j.y - 19, 70 * Math.max(0, j.hp / j.maxHp), 5, 2); ctx.fill();
     ctx.restore();
   }
 
