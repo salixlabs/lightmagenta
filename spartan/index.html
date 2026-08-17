@@ -215,15 +215,34 @@
 
   const SPARTAN_PNG = "spartan-444-side.png";
   const ARENA_PNG = "spartan-arena-bg.png";
+  const EMBER_PNG = "enemy-ember.png";
+  const REAVER_PNG = "enemy-reaver.png";
+  const VORRAK_PNG = "boss-vorrak.png";
   const spartanImg = new Image();
   const arenaImg = new Image();
+  const emberImg = new Image();
+  const reaverImg = new Image();
+  const vorrakImg = new Image();
   let spartanReady = false;
   let arenaReady = false;
+  let emberReady = false;
+  let reaverReady = false;
+  let vorrakReady = false;
   const suitSprites = Object.create(null);
+  let stingerSpr = null;
   spartanImg.onload = function () { spartanReady = true; };
   arenaImg.onload = function () { arenaReady = true; };
+  emberImg.onload = function () { emberReady = true; };
+  reaverImg.onload = function () { reaverReady = true; };
+  vorrakImg.onload = function () { vorrakReady = true; };
+  emberImg.onerror = function () { emberReady = false; };
+  reaverImg.onerror = function () { reaverReady = false; };
+  vorrakImg.onerror = function () { vorrakReady = false; };
   spartanImg.src = SPARTAN_PNG;
   arenaImg.src = ARENA_PNG;
+  emberImg.src = EMBER_PNG;
+  reaverImg.src = REAVER_PNG;
+  vorrakImg.src = VORRAK_PNG;
 
   const SUITS = {
     olive:   { body: "#3f6a28", dark: "#243e16", light: "#6a9a3e", trim: "#2c2410", visor: "#f0b429", name: "OLIVE" },
@@ -1405,41 +1424,50 @@
     ctx.scale(e.face, 1);
     if (e.hit > 0) ctx.globalAlpha = 0.5;
     const crouch = e.atk === "slam" ? 10 : 0;
-    ctx.fillStyle = "#2e1065";
-    rr(ctx, -22, -52 + crouch, 16, 52 - crouch, 5); ctx.fill();
-    rr(ctx, 6, -52 + crouch, 16, 52 - crouch, 5); ctx.fill();
-    ctx.fillStyle = "#5b21b6";
-    rr(ctx, -28, -118 + crouch, 56, 72, 10); ctx.fill();
-    ctx.fillStyle = "#d4a017";
-    rr(ctx, -24, -112 + crouch, 48, 8, 3); ctx.fill();
-    rr(ctx, -24, -78 + crouch, 48, 6, 3); ctx.fill();
-    ctx.fillStyle = (e.phase === "exposed" || e.phase === "stagger") ? "#ffe08a" : "#7cf0ff";
-    const cr = e.phase === "exposed" ? 9 + Math.sin(e.t * 10) * 2 : 6;
-    ctx.beginPath(); ctx.arc(0, -92 + crouch, cr, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#3b0764";
-    rr(ctx, -40, -118 + crouch, 18, 22, 6); ctx.fill();
-    rr(ctx, 22, -118 + crouch, 18, 22, 6); ctx.fill();
-    ctx.fillStyle = "#e8b43a";
-    rr(ctx, -40, -118 + crouch, 18, 5, 3); ctx.fill();
-    rr(ctx, 22, -118 + crouch, 18, 5, 3); ctx.fill();
-    ctx.fillStyle = "#6d28d9";
-    rr(ctx, -20, -148 + crouch, 40, 34, 8); ctx.fill();
-    ctx.fillStyle = "#5eead4";
-    rr(ctx, -14, -136 + crouch, 28, 8, 3); ctx.fill();
-    ctx.fillStyle = "#e8b43a";
-    ctx.beginPath();
-    ctx.moveTo(-4, -146 + crouch);
-    ctx.lineTo(0, -188 + crouch);
-    ctx.lineTo(4, -146 + crouch);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#f6e2a0";
-    ctx.fillRect(-3, -168 + crouch, 6, 20);
-    ctx.fillStyle = "#4c1d95";
-    ctx.beginPath(); ctx.moveTo(-20, -140 + crouch); ctx.lineTo(-38, -158 + crouch); ctx.lineTo(-16, -128 + crouch); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(20, -140 + crouch); ctx.lineTo(38, -158 + crouch); ctx.lineTo(16, -128 + crouch); ctx.fill();
-    if (e.atk === "lance") {
-      ctx.fillStyle = "#ffe08a";
-      rr(ctx, 28, -100 + crouch, 36, 8, 3); ctx.fill();
+    if (vorrakReady && vorrakImg.naturalWidth) {
+      const dh = 208 - crouch * 0.35;
+      const dw = dh * vorrakImg.naturalWidth / vorrakImg.naturalHeight;
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(vorrakImg, -dw * 0.48, -dh, dw, dh);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = "#2e1065";
+      rr(ctx, -22, -52 + crouch, 16, 52 - crouch, 5); ctx.fill();
+      rr(ctx, 6, -52 + crouch, 16, 52 - crouch, 5); ctx.fill();
+      ctx.fillStyle = "#5b21b6";
+      rr(ctx, -28, -118 + crouch, 56, 72, 10); ctx.fill();
+      ctx.fillStyle = "#d4a017";
+      rr(ctx, -24, -112 + crouch, 48, 8, 3); ctx.fill();
+      rr(ctx, -24, -78 + crouch, 48, 6, 3); ctx.fill();
+      ctx.fillStyle = (e.phase === "exposed" || e.phase === "stagger") ? "#ffe08a" : "#7cf0ff";
+      const cr = e.phase === "exposed" ? 9 + Math.sin(e.t * 10) * 2 : 6;
+      ctx.beginPath(); ctx.arc(0, -92 + crouch, cr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#3b0764";
+      rr(ctx, -40, -118 + crouch, 18, 22, 6); ctx.fill();
+      rr(ctx, 22, -118 + crouch, 18, 22, 6); ctx.fill();
+      ctx.fillStyle = "#e8b43a";
+      rr(ctx, -40, -118 + crouch, 18, 5, 3); ctx.fill();
+      rr(ctx, 22, -118 + crouch, 18, 5, 3); ctx.fill();
+      ctx.fillStyle = "#6d28d9";
+      rr(ctx, -20, -148 + crouch, 40, 34, 8); ctx.fill();
+      ctx.fillStyle = "#5eead4";
+      rr(ctx, -14, -136 + crouch, 28, 8, 3); ctx.fill();
+      ctx.fillStyle = "#e8b43a";
+      ctx.beginPath();
+      ctx.moveTo(-4, -146 + crouch);
+      ctx.lineTo(0, -188 + crouch);
+      ctx.lineTo(4, -146 + crouch);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f6e2a0";
+      ctx.fillRect(-3, -168 + crouch, 6, 20);
+      ctx.fillStyle = "#4c1d95";
+      ctx.beginPath(); ctx.moveTo(-20, -140 + crouch); ctx.lineTo(-38, -158 + crouch); ctx.lineTo(-16, -128 + crouch); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(20, -140 + crouch); ctx.lineTo(38, -158 + crouch); ctx.lineTo(16, -128 + crouch); ctx.fill();
+      if (e.atk === "lance") {
+        ctx.fillStyle = "#ffe08a";
+        rr(ctx, 28, -100 + crouch, 36, 8, 3); ctx.fill();
+      }
     }
     ctx.restore();
     ctx.save();
@@ -1448,6 +1476,28 @@
     ctx.textAlign = "center";
     ctx.fillText("VORRAK", cx, e.y - 18);
     ctx.restore();
+  }
+
+  function tintStinger() {
+    if (stingerSpr) return stingerSpr;
+    if (!emberReady || !emberImg.naturalWidth) return null;
+    const src = emberImg;
+    const c = document.createElement("canvas");
+    c.width = src.naturalWidth; c.height = src.naturalHeight;
+    const g = c.getContext("2d");
+    g.drawImage(src, 0, 0);
+    g.globalCompositeOperation = "source-atop";
+    g.fillStyle = "rgba(16,170,168,0.50)";
+    g.fillRect(0, 0, c.width, c.height);
+    stingerSpr = c;
+    return c;
+  }
+
+  function enemySprite(e) {
+    if (e.type === "ember") return (emberReady && emberImg.naturalWidth) ? emberImg : null;
+    if (e.type === "reaver") return (reaverReady && reaverImg.naturalWidth) ? reaverImg : null;
+    if (e.type === "stinger") return tintStinger();
+    return null;
   }
 
   function drawEnemy(e) {
@@ -1459,7 +1509,16 @@
     ctx.translate(cx, e.y + e.h);
     ctx.scale(e.face, 1);
     if (e.hit > 0) ctx.globalAlpha = 0.5;
-    if (e.type === "ember") {
+    const spr = enemySprite(e);
+    if (spr) {
+      const dh = e.type === "reaver" ? 126 : e.type === "stinger" ? 52 : 70;
+      const sw = spr.naturalWidth || spr.width, sh = spr.naturalHeight || spr.height;
+      const dw = dh * sw / sh;
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.drawImage(spr, -dw * 0.48, -dh, dw, dh);
+      ctx.restore();
+    } else if (e.type === "ember") {
       const body = ctx.createLinearGradient(-16, -42, 16, -4);
       body.addColorStop(0, "#f4b06a");
       body.addColorStop(0.35, "#c45a18");
