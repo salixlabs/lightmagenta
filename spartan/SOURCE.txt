@@ -1,5 +1,5 @@
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/21c3e1f
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/9d30133
 
-Boss display name: Tartarus
-Files: index.html, title-spartan-444.png, spartan-444-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png
+Wave 1: guaranteed Johnson beacon with bright beam/arrow/CALL JOHNSON label.
+Files: index.html, README.md, title-spartan-444.png, spartan-444-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png
 Do not pull newer Spartan commits unless CoS scopes a hub update.
