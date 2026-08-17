@@ -1,5 +1,6 @@
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/9d30133
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/5b3a811
 
 Wave 1: guaranteed Johnson beacon with bright beam/arrow/CALL JOHNSON label.
+sergeant-johnson.png is keyed/tight (939x1019, ~728KB) with UNSC camo hat.
 Files: index.html, README.md, title-spartan-444.png, spartan-444-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png
 Do not pull newer Spartan commits unless CoS scopes a hub update.
