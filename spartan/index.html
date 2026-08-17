@@ -176,7 +176,7 @@
             <button class="suit" data-suit="crimson">CRIMSON</button>
             <button class="suit lock" data-suit="austin" id="austinSuitBtn">AUSTIN SUIT</button>
           </div>
-          <p class="sub" id="hint">Stick / WASD: 360° move + aim · JUMP / SPACE · FIRE / X · 1–5 weapons · P pause</p>
+          <p class="sub" id="hint">Stick / WASD: 360° aim · analog X runs · JUMP / SPACE · FIRE / X · 1–5 weapons · P pause</p>
           <button id="resume">RESUME</button>
         </div>
       </div>
@@ -912,24 +912,17 @@
     if (jumpBuf > 0) { jumpBuf -= dt; if (player.onG) tryJump(); }
 
     const accel = player.onG ? 2800 : 2300, maxS = 310, fric = 2100;
-    const analogY = mv.mag > 0.14 && Math.abs(mv.my) > 0.16;
-    if (mv.mag > 0.12) {
+    if (Math.abs(mv.mx) > 0.12) {
       const tx = mv.mx * maxS;
       player.vx += clamp(tx - player.vx, -accel * dt, accel * dt);
-      if (analogY) {
-        const ty = mv.my * maxS;
-        player.vy += clamp(ty - player.vy, -accel * dt, accel * dt);
-      }
     } else {
       const s = Math.sign(player.vx);
       player.vx -= s * fric * dt;
       if (Math.sign(player.vx) !== s) player.vx = 0;
     }
     player.vx = clamp(player.vx, -maxS, maxS);
-    if (!analogY) {
-      const rising = player.vy < 0 && jumpHeld;
-      player.vy += (rising ? 1180 : 1760) * dt;
-    }
+    const rising = player.vy < 0 && jumpHeld;
+    player.vy += (rising ? 1180 : 1760) * dt;
     if (player.vy > 980) player.vy = 980;
 
     const wasG = player.onG;
