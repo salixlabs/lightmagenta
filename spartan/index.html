@@ -588,13 +588,13 @@
         if (bossKill) {
           pendingWin = 1;
           winAt = performance.now() / 1000 + 1.7;
-          toast("CRESTLORD DOWN", 2.2);
+          toast("TARTARUS DOWN", 2.2);
           shake = Math.max(shake, 22);
           beep(98, 0.2, "sawtooth", 0.08, 40);
         } else if (!crestSpawned) {
           pendingBoss = 1;
           nextBossAt = performance.now() / 1000 + 1.4;
-          toast("THE CRESTLORD COMES", 1.7);
+          toast("TARTARUS COMES", 1.7);
           beep(130, 0.14, "sawtooth", 0.06, 70);
         }
       } else {
@@ -642,7 +642,7 @@
       cool: 1.4, t: 0, hit: 0, spd: 72, range: 360, score: 2500
     });
     waveAlive += 1;
-    toast("CRESTLORD VORRAK", 2.1);
+    toast("TARTARUS", 2.1);
     shake = Math.max(shake, 12);
     beep(110, 0.18, "sawtooth", 0.07, 55);
     setTimeout(function () { beep(82, 0.22, "square", 0.06, 40); }, 120);
@@ -1474,7 +1474,7 @@
     ctx.fillStyle = "#f3d27a";
     ctx.font = "14px Impact, system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("VORRAK", cx, e.y - 18);
+    ctx.fillText("TARTARUS", cx, e.y - 18);
     ctx.restore();
   }
 
@@ -1642,7 +1642,7 @@
       ctx.font = "16px Impact, system-ui, sans-serif";
       ctx.textAlign = "center";
       const tag = boss.shield > 0 ? "CREST UP" : (boss.phase === "stagger" ? "SHATTERED" : "CORE OPEN");
-      ctx.fillText("CRESTLORD VORRAK  ·  " + tag, W / 2, by + 16);
+      ctx.fillText("TARTARUS  ·  " + tag, W / 2, by + 16);
       ctx.fillStyle = "#3a2a10";
       rr(ctx, bx + 12, by + 22, 416, 8, 3); ctx.fill();
       ctx.fillStyle = "#e8b43a";
@@ -1770,7 +1770,7 @@
     if (win) {
       ctx.fillStyle = "#e8b43a";
       ctx.font = "22px Impact, system-ui, sans-serif";
-      ctx.fillText("Austin-444. Crestlord down. The Forge holds.", W / 2, 372);
+      ctx.fillText("Austin-444. Tartarus down. The Forge holds.", W / 2, 372);
     }
     ctx.fillStyle = "#cbb892";
     ctx.font = "20px Impact, system-ui, sans-serif";
