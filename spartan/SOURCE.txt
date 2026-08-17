@@ -1,4 +1,4 @@
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/3dc0323
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/277b8a1
 
 Files: index.html, title-spartan-444.png, spartan-444-side.png, spartan-arena-bg.png
 Do not pull newer Spartan commits unless CoS scopes a hub update.
