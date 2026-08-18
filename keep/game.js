@@ -78,7 +78,7 @@ const PADS = [
 ];
 
 const RUNE = { x: 572, y: 86 };
-const BANNER = { x: 1294, y: 292 };
+const BANNER = { x: 1220, y: 292 };
 const GUARD = { x: 1172, y: 448 };
 
 function buildPath(pts) {
@@ -262,6 +262,7 @@ function makeHero(id, x, y) {
 }
 
 function resetRun() {
+  hideMenus();
   state.gold = 250;
   state.lives = 21;
   state.wave = 0;
@@ -299,7 +300,7 @@ function resetRun() {
   ];
   hudGold(); hudLives(); hudWave();
   $('#waveBtnLabel').textContent = 'Call Wave 1';
-  $('#waveBtnHint').textContent = '+12 gold';
+  $('#waveBtnHint').textContent = 'Begin the siege';
   $('#btnWave').classList.add('ready');
   syncHeroUI();
   hideMenus();
@@ -496,8 +497,8 @@ function useAbility(h) {
 function lionheart(h) {
   const e = nearestEnemy(h, 170);
   const ang = e ? Math.atan2(e.y - h.y, e.x - h.x) : (h.facing > 0 ? 0 : Math.PI);
-  h.x += Math.cos(ang) * 78;
-  h.y += Math.sin(ang) * 78;
+  h.x = clamp(h.x + Math.cos(ang) * 78, 20, W - 20);
+  h.y = clamp(h.y + Math.sin(ang) * 78, 40, H - 20);
   h.tx = h.x; h.ty = h.y;
   h.glow = 1.4;
   h.smash = 0.25;
@@ -523,8 +524,8 @@ function nightfall(h) {
 function resolveNightfall(h) {
   const e = weakestEnemy(h, 190) || nearestEnemy(h, 220);
   if (e) {
-    h.x = e.x - 16;
-    h.y = e.y;
+    h.x = clamp(e.x - 16, 20, W - 20);
+    h.y = clamp(e.y, 40, H - 20);
     h.tx = h.x; h.ty = h.y;
     hurt(e, h.dmg * 3.2 + (h.empower > 0 ? 10 : 0), '#d8b4ff');
   }
@@ -1460,8 +1461,14 @@ function placeSheet(el, worldX, worldY) {
   const v = view();
   const sx = v.ox + worldX * v.s;
   const sy = v.oy + worldY * v.s;
-  el.style.left = clamp(sx - 140, 8, v.r.width - 300) + 'px';
-  el.style.top = clamp(sy - 120, 8, v.r.height - 160) + 'px';
+  el.style.left = '8px';
+  el.style.top = '8px';
+  const w = el.offsetWidth || 280;
+  const h = el.offsetHeight || 160;
+  const maxL = Math.max(8, v.r.width - w - 8);
+  const maxT = Math.max(8, v.r.height - h - 8);
+  el.style.left = clamp(sx - w / 2, 8, maxL) + 'px';
+  el.style.top = clamp(sy - h - 16, 8, maxT) + 'px';
 }
 
 function openBuild(pad) {
@@ -1695,7 +1702,9 @@ function restartFromOverlay() {
 function bindUI() {
   $('#btnPlay').onclick = startPlay;
   $('#btnHow').onclick = () => { $('#scrHow').hidden = false; };
-  $('#btnHowClose').onclick = () => { $('#scrHow').hidden = true; };
+  const closeHow = () => { $('#scrHow').hidden = true; };
+  $('#btnHowClose').onclick = closeHow;
+  $('#btnHowX').onclick = closeHow;
   $('#btnPause').onclick = pauseGame;
   $('#btnResume').onclick = resumeGame;
   $('#btnRestartPause').onclick = restartFromOverlay;
