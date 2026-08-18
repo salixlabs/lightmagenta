@@ -1,7 +1,11 @@
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/ea2bbb459c04ef8bc5a78766b0acc1a3d7349397
+Spartan Forge 0.3.0
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/0eee260f519ed185d97719df2c6e925a28599b5d
+
+Same gameplay as ea2bbb459c04ef8bc5a78766b0acc1a3d7349397; this commit adds VERSION + SOURCE.txt.
+name: Spartan Forge
+version: 0.3.0
+play: https://lightmagenta.com/spartan
 
 Pelican drops, scrolling stages, Shotgun, and in-hand weapons.
-New/updated siblings: pelican-dropship.png, marine-female.png, marine-heavy.png, austin-suit-side.png, title-spartan-444.png, index.html.
-Files: index.html, README.md, title-spartan-444.png, spartan-444-side.png, austin-suit-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png, pelican-dropship.png, marine-female.png, marine-heavy.png
+Files: index.html, README.md, VERSION, SOURCE.txt, title-spartan-444.png, spartan-444-side.png, austin-suit-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png, pelican-dropship.png, marine-female.png, marine-heavy.png
 Source repo stays private.
-Do not pull newer Spartan commits unless CoS scopes a hub update.

@@ -186,6 +186,7 @@
 (function () {
   "use strict";
 
+  const VERSION = "0.3.0";
   const W = 1280, H = 800, GROUND = 708;
   let worldW = 5600;
   const canvas = document.getElementById("c");
@@ -2289,6 +2290,9 @@
     ctx.fillStyle = "#cbb892";
     ctx.font = "14px Impact, system-ui, sans-serif";
     ctx.fillText(WEPS[player.wep].name, rx, hy + 70);
+    ctx.fillStyle = "rgba(203,184,146,0.55)";
+    ctx.font = "12px system-ui, sans-serif";
+    ctx.fillText(VERSION, rx, hy + 88);
     ctx.restore();
 
     let boss = null;
@@ -2406,6 +2410,9 @@
     ctx.fillStyle = "#cbb892";
     ctx.font = "16px system-ui, sans-serif";
     ctx.fillText("Made for Austin", W - 56, 268);
+    ctx.fillStyle = "rgba(203,184,146,0.7)";
+    ctx.font = "13px system-ui, sans-serif";
+    ctx.fillText(VERSION, W - 56, 290);
     ctx.restore();
 
     const pulse = 0.65 + Math.sin(performance.now() / 280) * 0.35;

@@ -6,12 +6,15 @@ The hero is **Austin-444** (Spartan number **444**). You will see `444` on his c
 No build step. Vanilla JS + Canvas 2D. Works offline.
 
 **Play URL:** https://lightmagenta.com/spartan  
+**Version:** 0.3.0 (current live SHA ea2bbb4).
 WebDev hosts this on the Light Magenta hub. The path will not resolve until DNS cutover finishes. Until then, use the Safari steps below.
 
 **Target: Safari on iPad, landscape.** That is the only device/browser this build is tuned for.
 
 ## Files (keep these together)
 
+- `VERSION` — plain-text version (`0.3.0`)
+- `SOURCE.txt` — name, version, play URL; Web reads this when pinning the folder to the hub
 - `index.html` — the whole game (vanilla JS + canvas, no build step; loads sibling PNGs)
 - `title-spartan-444.png` — cinematic title splash of Austin Suit on a sunset battlefield (full-bleed title page; preferred, faster). Overlay still draws AUSTIN-444 / SPARTAN 444 / TAP TO START
 - `spartan-444-side.png` — realistic side-view olive Austin-444 player sprite (`444` on the chest; flipped when aiming left)
