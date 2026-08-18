@@ -1,5 +1,5 @@
-Pinned playable copy from https://github.com/salixlabs/hammerhead/commit/caba188
+Pinned playable copy from https://github.com/salixlabs/hammerhead/commit/7946d8b7f3e38a152f48b2380cee132791b647c4
 
-Files: index.html, game.js, styles.css, README.md
+Files: index.html, game.js, styles.css, README.md, game/logic.js
 Photo handling is client-only: file picker + object URL + canvas. No upload, fetch, or remote photo storage.
 Source repo stays private.

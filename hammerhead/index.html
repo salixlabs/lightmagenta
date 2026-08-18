@@ -1,7 +1,97 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#ffcf40"><title>HammerHead — Flatten responsibly</title><link rel="stylesheet" href="styles.css"></head><body>
-<header><b><i>HH</i> HAMMERHEAD</b><span class="coins">🟡 <strong id="coins">0</strong></span></header><main>
-<section id="start" class="screen active"><div class="hero">🔨<span>🙂</span><em>POW!</em></div><small>SALIX LABS PRESENTS</small><h1>GOT A HEAD?<br><mark>LET'S FLATTEN IT.</mark></h1><p>A tiny game about physics, photos, and extremely questionable tool use.</p><label class="primary"><input id="photo" type="file" accept="image/*">CHOOSE A PHOTO →</label><small>🔒 Your photo never leaves this device. Scouts' honor.</small><button id="how" class="link">How to play</button></section>
-<section id="crop" class="screen"><nav><button id="back">←</button><div><small>STEP ONE</small><h2>FIND THE NOGGIN</h2></div></nav><p id="status" class="status">Looking for a head…</p><div id="cropStage"><canvas id="cropCanvas" width="700" height="700"></canvas><div class="oval"></div><span>Drag to position · pinch to zoom</span></div><div class="controls"><label>ZOOM <input id="zoom" type="range" min=".45" max="3.5" step=".01" value="1"></label><button id="rotate">↻ Rotate</button></div><button id="confirm" class="primary">YEP, THAT'S THE HEAD →</button><button class="link repick">Pick a different photo</button></section>
-<section id="game" class="screen"><div class="hud"><button class="repick">＋ New head</button><strong id="combo">READY?</strong><button id="sound">Sound ON</button></div><div id="arena"><canvas id="gameCanvas" width="900" height="850"></canvas><b id="hint">TAP TO SMASH!</b></div><div class="meter"><span>CHONKY</span><i><b id="fill"></b></i><span>PANCAKE</span></div><div id="weapons"></div><button id="smash" class="smash">SMASH!</button></section></main>
-<dialog id="help"><button class="close">×</button><small>THE SCIENCE</small><h2>TAP. SQUISH. REPEAT.</h2><ol><li>Pick a photo. We'll find the head; you can fine-tune it.</li><li>Choose a tool. Each has its own deeply scientific bonk.</li><li>Flatten completely. Earn coins and unlock sillier hardware.</li></ol><button class="primary close">I UNDERSTAND PHYSICS</button></dialog>
-<div id="win"><article><div>🥞</div><small>CERTIFIED FLAT</small><h2>BEAUTIFULLY TWO-DIMENSIONAL.</h2><h3>🟡 +1 COIN</h3><button id="again" class="primary">SMASH IT AGAIN</button><button id="shop">CHECK THE TOYS</button><button class="link repick">Try a new head</button></article></div><script src="game.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#ffcf40">
+  <title>HammerHead — Flatten responsibly</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <b><i>HH</i> HAMMERHEAD</b>
+    <span class="coins">🟡 <strong id="coins">0</strong></span>
+  </header>
+  <main>
+    <section id="start" class="screen active">
+      <div class="hero">🔨<span>🙂</span><em>POW!</em></div>
+      <small>SALIX LABS PRESENTS</small>
+      <h1>GOT A HEAD?<br><mark>LET'S FLATTEN IT.</mark></h1>
+      <p>A tiny game about physics, photos, and extremely questionable tool use. Start with a squeaky toy hammer. Earn a coin every bonk. Certified-flat pancakes pay 100.</p>
+      <label class="primary"><input id="photo" type="file" accept="image/*">CHOOSE A PHOTO →</label>
+      <small>🔒 Your photo never leaves this device. Scouts' honor.</small>
+      <button id="how" class="link">How to play</button>
+    </section>
+
+    <section id="crop" class="screen">
+      <nav>
+        <button id="back">←</button>
+        <div>
+          <small>STEP ONE</small>
+          <h2>FIND THE NOGGIN</h2>
+        </div>
+      </nav>
+      <p id="status" class="status">Looking for a head…</p>
+      <div id="cropStage">
+        <canvas id="cropCanvas" width="700" height="700"></canvas>
+        <div class="frame"></div>
+        <span>Drag to position · pinch to zoom</span>
+      </div>
+      <div class="controls">
+        <label>ZOOM <input id="zoom" type="range" min=".45" max="3.5" step=".01" value="1"></label>
+        <button id="rotate">↻ Rotate</button>
+      </div>
+      <button id="confirm" class="primary">YEP, THAT'S THE HEAD →</button>
+      <button class="link repick">Pick a different photo</button>
+    </section>
+
+    <section id="game" class="screen">
+      <div class="hud">
+        <button class="repick">＋ New head</button>
+        <strong id="combo">READY?</strong>
+        <button id="sound">Sound ON</button>
+      </div>
+      <div id="arena">
+        <canvas id="gameCanvas" width="900" height="850"></canvas>
+        <b id="hint">TAP TO SMASH!</b>
+      </div>
+      <div class="meter">
+        <span>TALL</span>
+        <i><b id="fill"></b></i>
+        <span>10% FLAT</span>
+      </div>
+      <p class="economy">Every smash 🟡 +1 · Certified flat (10% height) 🟡 +100</p>
+      <div id="weapons"></div>
+      <button id="smash" class="smash">SMASH!</button>
+    </section>
+  </main>
+
+  <dialog id="help">
+    <button class="close">×</button>
+    <small>THE SCIENCE</small>
+    <h2>TAP. SQUISH. REPEAT.</h2>
+    <ol>
+      <li>Pick a photo. We'll find the head; you can fine-tune the rectangular crop.</li>
+      <li>Start with the toy hammer — the weakest, squeakiest tool. Each tap presses the photo flatter, like a picture in a press.</li>
+      <li>Every smash pays <strong>1 coin</strong>, even before the head is done.</li>
+      <li>Keep going until only <strong>10% of the original height</strong> remains. That certified-flat pancake pays <strong>100 coins</strong>.</li>
+      <li>Spend coins on heavier toys. Late-game tools flatten dramatically faster. Photos never leave this device.</li>
+    </ol>
+    <button class="primary close">I UNDERSTAND PHYSICS</button>
+  </dialog>
+
+  <div id="win" aria-hidden="true">
+    <article>
+      <div>🥞</div>
+      <small>CERTIFIED FLAT · 10% HEIGHT</small>
+      <h2>BEAUTIFULLY TWO-DIMENSIONAL.</h2>
+      <p class="win-note">Every smash already paid +1. The pancake bonus just landed.</p>
+      <h3>🟡 +100 FLATTEN BONUS</h3>
+      <button id="again" class="primary">SMASH IT AGAIN</button>
+      <button id="shop">CHECK THE TOYS</button>
+      <button class="link repick">Try a new head</button>
+    </article>
+  </div>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
