@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Keep">
+  <meta name="theme-color" content="#1b2414">
+  <meta name="format-detection" content="telephone=no">
+  <title>Keep — Sir Julian the Brave</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header id="hudTop" class="hud" hidden>
+      <button id="btnPause" class="iconBtn" type="button" aria-label="Pause">II</button>
+      <div class="brand">
+        <b>KEEP</b>
+        <em>777</em>
+      </div>
+      <div class="stat gold" id="statGold" aria-label="Gold"><i></i><strong>250</strong></div>
+      <div class="stat lives" id="statLives" aria-label="Lives"><i></i><strong>21</strong></div>
+      <div class="stat wave" id="statWave" aria-label="Wave"><span>WAVE</span><strong>0/10</strong></div>
+      <button id="btnMute" class="iconBtn" type="button" aria-label="Mute">♪</button>
+    </header>
+
+    <div id="stage">
+      <canvas id="c" width="1280" height="720"></canvas>
+      <div id="toast" hidden></div>
+      <div id="buildMenu" class="sheet" hidden></div>
+      <div id="towerMenu" class="sheet" hidden></div>
+    </div>
+
+    <footer id="hudBot" class="hud" hidden>
+      <button class="heroBtn" id="hbJulian" data-hero="julian" type="button">
+        <canvas class="mini" width="72" height="72"></canvas>
+        <span class="name">Julian</span>
+        <span class="role">Lionheart</span>
+        <i class="cd" hidden></i>
+      </button>
+      <button class="heroBtn" id="hbShadow" data-hero="shadow" type="button">
+        <canvas class="mini" width="72" height="72"></canvas>
+        <span class="name">Shadow</span>
+        <span class="role">Nightfall</span>
+        <i class="cd" hidden></i>
+      </button>
+      <button class="heroBtn" id="hbPapa" data-hero="papa" type="button">
+        <canvas class="mini" width="72" height="72"></canvas>
+        <span class="name">Papa</span>
+        <span class="role">Bulwark</span>
+        <i class="cd" hidden></i>
+      </button>
+      <button class="powerBtn" id="btnAbility" type="button">
+        <b id="abilityName">Lionheart</b>
+        <small id="abilityHint">Select a hero</small>
+        <i class="cd" hidden></i>
+      </button>
+      <button class="powerBtn" id="btnReinforce" type="button">
+        <b>Reinforcements</b>
+        <small>Drop 2 soldiers</small>
+        <i class="cd" hidden></i>
+      </button>
+      <button class="powerBtn call" id="btnWave" type="button">
+        <b id="waveBtnLabel">Call Wave</b>
+        <small id="waveBtnHint">+12 gold</small>
+      </button>
+    </footer>
+
+    <section id="scrStart" class="scr on">
+      <div class="veil"></div>
+      <div class="card startCard">
+        <small class="eyebrow">SALIX LABS PRESENTS</small>
+        <div class="crownRow" aria-hidden="true">
+          <span>7</span><span>7</span><span>7</span>
+        </div>
+        <h1>KEEP</h1>
+        <h2>Sir Julian the Brave stands at the gate.</h2>
+        <p>A cartoon siege on the forest road. Three heroes fight on the map — not portraits in a drawer. Build, rally, and hold the stone keep.</p>
+        <ul class="cast">
+          <li><b>Sir Julian the Brave</b> — great hero, golden &amp; crimson, Lionheart smash.</li>
+          <li><b>Shadow</b> — dark-cloaked rogue. Nightfall, then a crit burst.</li>
+          <li><b>Papa</b> — warm guardian. Bulwark stun and a lane-blocking wall.</li>
+        </ul>
+        <button id="btnPlay" class="primary" type="button">DEFEND THE KEEP</button>
+        <button id="btnHow" class="link" type="button">How to play</button>
+        <small class="fine">iPad Safari · landscape · first tap unlocks sound</small>
+      </div>
+    </section>
+
+    <section id="scrHow" class="scr" hidden>
+      <div class="veil"></div>
+      <div class="card">
+        <small class="eyebrow">THE WATCH</small>
+        <h2>Hold the winding road.</h2>
+        <ol>
+          <li>Tap an empty pad to raise a tower. Each has two upgrades with a new trick.</li>
+          <li>Tap a hero or their portrait, then tap the path to send them. They fight on their own.</li>
+          <li>Barracks soldiers (and Papa’s wall) body-block ground foes. Nightwings fly over.</li>
+          <li>Call the next wave early for a little gold. The last wave is the boss.</li>
+        </ol>
+        <p class="whisper">There are a few warm secrets in the grass and on the banners. Nothing mean. Nothing biographical.</p>
+        <button id="btnHowClose" class="primary" type="button">JULIAN THE BRAVE STANDS</button>
+      </div>
+    </section>
+
+    <section id="scrPause" class="scr" hidden>
+      <div class="veil"></div>
+      <div class="card">
+        <small class="eyebrow">HALT</small>
+        <h2>The line holds — for now.</h2>
+        <button id="btnResume" class="primary" type="button">RESUME</button>
+        <button id="btnRestartPause" class="ghost" type="button">Restart the siege</button>
+      </div>
+    </section>
+
+    <section id="scrDefeat" class="scr" hidden>
+      <div class="veil"></div>
+      <div class="card">
+        <small class="eyebrow">THE KEEP FALLS</small>
+        <h2>The gate is breached.</h2>
+        <p id="defeatLine">Julian plants his banner in the rubble. Tomorrow, they try again.</p>
+        <button id="btnRetry" class="primary" type="button">STAND AGAIN</button>
+      </div>
+    </section>
+
+    <section id="scrVictory" class="scr" hidden>
+      <div class="veil"></div>
+      <div class="card win">
+        <small class="eyebrow">THE ROAD IS OURS</small>
+        <h2>Julian the Brave stands!</h2>
+        <p>Shadow melts back into the trees. Papa leans on his hammer and laughs. The keep still has all its stones.</p>
+        <button id="btnVictory" class="primary" type="button">ONE MORE SIEGE</button>
+      </div>
+    </section>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
