@@ -44,7 +44,7 @@
       </button>
       <button class="heroBtn" id="hbShadow" data-hero="shadow" type="button">
         <canvas class="mini" width="72" height="72"></canvas>
-        <span class="name">Shadow</span>
+        <span class="name">Aussie</span>
         <span class="role">Nightfall</span>
         <i class="cd" hidden></i>
       </button>
@@ -79,10 +79,10 @@
         </div>
         <h1>KEEP</h1>
         <h2>Sir Julian the Brave stands at the gate.</h2>
-        <p>A cartoon siege on the forest road. Three heroes fight on the map — not portraits in a drawer. Build, rally, and hold the stone keep.</p>
+        <p>Three sieges on winding roads. Three heroes fight on the map — not portraits in a drawer. Build, rally, and hold the stone keep.</p>
         <ul class="cast">
-          <li><b>Sir Julian the Brave</b> — great hero, golden &amp; crimson, Lionheart smash.</li>
-          <li><b>Shadow</b> — dark-cloaked rogue. Nightfall, then a crit burst.</li>
+          <li><b>Sir Julian the Brave</b> — great hero, black &amp; blue, sword and Lionheart dash.</li>
+          <li><b>Shadow Aussie</b> — light archer. Nightfall is a rapid bow volley.</li>
           <li><b>Papa</b> — warm guardian. Bulwark stun and a lane-blocking wall.</li>
         </ul>
         <button id="btnPlay" class="primary" type="button">DEFEND THE KEEP</button>
@@ -100,7 +100,7 @@
           <li>Tap an empty pad to raise a tower. Each has two upgrades with a new trick.</li>
           <li>Tap a hero or their portrait, then tap the path to send them. They fight on their own.</li>
           <li>Barracks soldiers (and Papa’s wall) body-block ground foes. Nightwings fly over.</li>
-          <li>Call the next wave early for a little gold. The last wave is the boss.</li>
+          <li>Call the next wave early for a little gold. Three maps, each harder. The last wave of Night Gate is the boss.</li>
         </ol>
         <button id="btnHowX" class="howClose" type="button" aria-label="Close">×</button>
         <p class="whisper">There are a few warm secrets in the grass and on the banners. Nothing mean. Nothing biographical.</p>
@@ -128,12 +128,22 @@
       </div>
     </section>
 
+    <section id="scrNext" class="scr" hidden>
+      <div class="veil"></div>
+      <div class="card win">
+        <small class="eyebrow">THE ROAD HOLDS</small>
+        <h2 id="nextTitle">The next siege waits.</h2>
+        <p id="nextLine">Julian wipes the blade. Shadow Aussie nocks another arrow. Papa grins.</p>
+        <button id="btnNext" class="primary" type="button">NEXT SIEGE</button>
+      </div>
+    </section>
+
     <section id="scrVictory" class="scr" hidden>
       <div class="veil"></div>
       <div class="card win">
         <small class="eyebrow">THE ROAD IS OURS</small>
         <h2>Julian the Brave stands!</h2>
-        <p>Shadow melts back into the trees. Papa leans on his hammer and laughs. The keep still has all its stones.</p>
+        <p>Shadow Aussie melts back into the trees. Papa leans on his hammer and laughs. The keep still has all its stones.</p>
         <button id="btnVictory" class="primary" type="button">ONE MORE SIEGE</button>
       </div>
     </section>
