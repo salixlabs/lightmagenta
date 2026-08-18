@@ -13,16 +13,20 @@ WebDev hosts this on the Light Magenta hub. The path will not resolve until DNS 
 ## Files (keep these together)
 
 - `index.html` — the whole game (vanilla JS + canvas, no build step; loads sibling PNGs)
-- `title-spartan-444.png` — cinematic title splash (full-bleed title page; preferred, faster)
-- `spartan-444-side.png` — realistic side-view Austin-444 player sprite (`444` on the chest; flipped when aiming left)
-- `spartan-arena-bg.png` — realistic battlefield backdrop (parallax cover behind the arena)
+- `title-spartan-444.png` — cinematic title splash of Austin Suit on a sunset battlefield (full-bleed title page; preferred, faster). Overlay still draws AUSTIN-444 / SPARTAN 444 / TAP TO START
+- `spartan-444-side.png` — realistic side-view olive Austin-444 player sprite (`444` on the chest; flipped when aiming left)
+- `austin-suit-side.png` — dedicated Austin Suit side sprite: dark navy body, cyan visor, cyan/teal lower legs, olive-green shoulder with a white stripe, white 444, small purple holographic AI. Studio white keyed out. Not a hue shift of the olive Spartan
+- `spartan-arena-bg.png` — realistic battlefield backdrop (parallax cover behind the stages)
 - `enemy-ember.png` — squat purple Ember infantry (studio white keyed to transparent RGBA)
 - `enemy-reaver.png` — tall gold/purple Reaver warrior (same key; Stingers use a scaled teal-tinted Ember)
 - `boss-vorrak.png` — Tartarus, gold/teal crested warlord
-- `sergeant-johnson.png` — keyed transparent Sergeant Johnson friendly summon sprite
+- `sergeant-johnson.png` — keyed transparent Sergeant Johnson friendly sprite (UNSC camo hat)
+- `marine-female.png` — keyed transparent rifle marine (studio white keyed out)
+- `marine-heavy.png` — keyed transparent heavy marine with launcher (studio white keyed out)
+- `pelican-dropship.png` — keyed transparent UNSC Pelican D77 troop transport (studio white keyed out)
 - `README.md` — this file
 
-AirDrop **the folder**, not just the HTML, when you can — the external PNGs are the title, the Spartan, the arena, the wave enemies, and Tartarus. AirDrop of just `index.html` still shows the splash via the inlined fallback (a canvas hero still draws if both title sources fail; enemies fall back to the old canvas actors if their PNGs are missing).
+AirDrop **the folder**, not just the HTML, when you can — the external PNGs are the title, the Spartan, the arena, the wave enemies, Tartarus, the Pelican, and the marine fireteam. AirDrop of just `index.html` still shows the splash via the inlined fallback (a canvas hero still draws if both title sources fail; enemies and friendlies fall back to canvas actors if their PNGs are missing).
 
 ## Open on iPad Safari
 
@@ -53,10 +57,10 @@ Safari-first. Landscape iPad is the target.
 
 **Touch (iPad Safari)**
 
-- Left analog stick — **360° aim**. Analog X walks / strafes (tilt amount is run speed). Analog Y aims up or down and does **not** leave the ground. The stick angle is the aim angle: Pulse, Burst, Arc, Bolt, and Austin's Gun all travel that way, including straight up or down. Facing flips with aim.
+- Left analog stick — **360° aim**. Analog X walks / strafes (tilt amount is run speed). Analog Y aims up or down and does **not** leave the ground. The stick angle is the aim angle: Pulse, Shotgun, Arc, Bolt, and Austin's Gun all travel that way, including straight up or down. Facing flips with aim.
 - Right **FIRE** — hold to shoot along the stick angle
 - **JUMP** (large button next to FIRE) — the only way off the ground. Stick-up aims up; it does not jump or fly. Hold JUMP for a higher hop; tap for a short hop. Coyote time and jump-buffer still apply.
-- Weapon strip (right) — Pulse / Burst / Arc / Bolt / A-Gun
+- Weapon strip (right) — Pulse / Shotgun / Arc / Bolt / A-Gun
 - **II** — pause + armor loadout
 
 **Keyboard** (Safari)
@@ -69,8 +73,10 @@ Safari-first. Landscape iPad is the target.
 
 ## Weapons
 
-1. **Pulse Rifle** — fast tracers, modest damage, tight spread
-2. **Scatterburst** — pellet shotgun, close-range cone, kick
+Switching weapons changes the gun in Austin-444's hands, not only the HUD.
+
+1. **Pulse Rifle** — long slim tracers, modest damage, tight spread
+2. **Shotgun** — pellet cone, close-range, kick (the old Burst / Scatterburst)
 3. **Arc Repeater** — glowing homing bolts; overheats if you hold it
 4. **Longbolt** — visible hitscan beam, high damage, pierces one extra target
 5. **Austin's Gun** — secret, huge gold orbs, screen-shake (locked at start)
@@ -79,25 +85,40 @@ Safari-first. Landscape iPad is the target.
 
 **Austin's Gun**
 
-- Shoot the glowing crate marked **A** (on the second platform, early in the run). Grab the gold orb it drops.
+- Shoot the glowing crate marked **A** (on the second platform, early in Ruined Outskirts). Grab the gold orb it drops.
 - Or enter the Konami-ish pad: **↑ ↑ ↓ ↓ ← → ← →** (WASD counts: `W W S S A D A D`).
 
-**Austin Suit** (teal + gold armor)
+**Austin Suit** (dedicated navy / cyan PBR sprite, not a teal+gold tint)
 
 - Same crate / Konami path, **or**
-- Survive **wave 2**.
+- Clear **Industrial Forge** (the second scrolling stage).
 
 Unlocks persist in `localStorage` for this Safari profile (`sf_austinGun`, `sf_austinSuit`, `sf_best`).
 
-## Sergeant Johnson power-up
+## Pelican dropship + marine fireteam
 
-A Sergeant Johnson beacon is **guaranteed in wave 1**. It deploys immediately, only about 150 px ahead of Austin-444 on his opening reachable ground path. The pickup is deliberately impossible to miss: a bright pulsing green/blue beacon, a tall vertical light column, a large downward arrow, the label **CALL JOHNSON**, and a long **JOHNSON BEACON DEPLOYED** toast. Collect it with normal player contact to call in **SGT. JOHNSON**. He drops into the arena, follows close to Austin, and fires friendly heavy-rifle rounds at the nearest enemy (including Tartarus) for about 20 seconds or until his 140 HP is depleted. Enemy fire can hit him; his rounds cannot hurt Austin. Wave 3 retains a 50% chance of a later refresh beacon; collecting it while Johnson is active refreshes both his timer and HP. If the PNG cannot load, the game draws a simple friendly canvas marine instead.
+A UNSC **Pelican** (D77 troop transport — the Halo dropship, not a bird) flies in from the left / above, hovers with the bay open, and a small fireteam jumps out. Then the Pelican flies off.
+
+- Level starts drop 2–3 friendlies.
+- Some stages get a mid-level reinforcement drop.
+- **SGT. JOHNSON** (UNSC camo hat) still arrives this way and stays on the fireteam.
+- Extra types: rifle **MARINE** (`marine-female.png`) and launcher **HEAVY** (`marine-heavy.png`).
+- Marines follow Austin-444, shoot the nearest enemy (including Tartarus), and can take enemy fire. Their rounds cannot hurt Austin.
+
+If a marine PNG cannot load, the game draws a simple canvas stand-in. Same for the Pelican.
 
 ## Play loop
 
-Title splash of Spartan 444 → tap to start → three waves (Embers, Stingers, Reavers) with a short breath between waves → **Tartarus** (wave-3 boss on the same arena) → shields recharge after about two seconds out of combat (overflow hits punch through to HP) → win beat *Forge complete / Austin would be proud / Tartarus down*, or tap to restart on death.
+Title splash of Spartan 444 → tap to start → **four distinct left-to-right scrolling stages** (Contra / Metal Slug style). The camera pushes right as Austin-444 advances. Enemies spawn ahead of the camera. Reach the far end after the sector is clear to move on.
+
+1. **Ruined Outskirts** — dusk rubble, Embers and Stingers, Austin crate, opening Pelican drop (Johnson + rifle marine), mid-level Heavy drop
+2. **Industrial Forge** — catwalks and stacks, Reavers mixed in; clearing this unlocks Austin Suit
+3. **Alien Trench** — purple / teal organic trench, denser Reavers and Stingers
+4. **Tartarus** — short approach, then the climax fight
 
 **Tartarus** — original warlord, crested helm, gold crest-shield. Break the crest (telegraphed gold lance, ground slam + shockwaves, bolt fan). When the crest shatters, the chest core is open for extra damage; if you wait, the crest reforms. Kill is sparks, not gore.
+
+Win beat: *Forge complete / Austin would be proud / Tartarus down*. Tap to restart on death. Shields recharge after about two seconds out of combat (overflow hits punch through to HP).
 
 ## iPad Safari caveats
 
@@ -107,27 +128,30 @@ Title splash of Spartan 444 → tap to start → three waves (Embers, Stingers, 
 - Prevents pinch-zoom and overscroll bounce; home-indicator / notch safe-area is respected on the thumb controls and HUD.
 - If the title looks like a drawn stand-in, both the sibling PNG and the inlined splash failed — copy the folder (HTML + PNGs), and open from **Safari** (Files → Share → Safari, or the local-server URL in Safari).
 - If Austin-444 looks like a green rectangle, `spartan-444-side.png` did not load — keep it next to `index.html`.
+- If Austin Suit looks like a simple navy paint or is missing the purple shoulder AI, `austin-suit-side.png` did not load — keep it next to `index.html`. Olive / Steel / Crimson still tint the olive Spartan.
 - If Embers, Reavers, Stingers, or Tartarus look like candy-colored boxes, the sibling enemy/boss PNGs did not load — keep `enemy-ember.png`, `enemy-reaver.png`, and `boss-vorrak.png` next to `index.html`.
+- If the Pelican or extra marines look like simple canvas stand-ins, keep `pelican-dropship.png`, `marine-female.png`, and `marine-heavy.png` next to `index.html`.
 - `100dvh` + `visualViewport` resize is used so the iPad Safari chrome (toolbar) does not clip the canvas.
 
 ## What is real vs stubbed
 
 **In this build**
 
-- Title cinematic (`title-spartan-444.png` as the full-bleed title page + Austin-444 / Spartan 444 overlay)
-- Realistic PNG Spartan (`spartan-444-side.png`) and battlefield backdrop (`spartan-arena-bg.png`) with lighting, muzzle flashes, tracers, and ground shadows
+- Title cinematic (`title-spartan-444.png` as the full-bleed title page with Austin Suit colors + Austin-444 / Spartan 444 / TAP TO START overlay)
+- Realistic PNG Spartan (`spartan-444-side.png`) plus dedicated Austin Suit sprite (`austin-suit-side.png`) and battlefield backdrop (`spartan-arena-bg.png`) with lighting, muzzle flashes, tracers, and ground shadows
 - 360° analog stick / WASD aim + analog-X run; JUMP button / Space is the only hop
 - Variable jump (coyote + buffer), four starter weapons + secret fifth (all fire along aim)
-- Three enemy types as keyed PNGs (`enemy-ember.png`, `enemy-reaver.png`; Stingers are a scaled teal Ember) plus Tartarus (`boss-vorrak.png`) and friendly Sergeant Johnson (`sergeant-johnson.png`); canvas actors still draw if a PNG fails to load
-- Three waves, score, HP + rechargeable shields, plus the guaranteed wave-1 Sergeant Johnson summon beacon and 50% wave-3 refresh
+- Weapon-in-hand overlays: Pulse, Shotgun, Arc, Longbolt, and Austin's Gun are visually distinct in his grip
+- Three enemy types as keyed PNGs (`enemy-ember.png`, `enemy-reaver.png`; Stingers are a scaled teal Ember) plus Tartarus (`boss-vorrak.png`)
+- Friendly fireteam: Sergeant Johnson, rifle marine, and heavy marine, delivered by Pelican (`pelican-dropship.png`)
+- Four scrolling stages (Outskirts / Forge / Trench / Tartarus climax), score, HP + rechargeable shields
 - Touch + keyboard, pause loadout with four colorways
 - Object-pooled bullets/particles, 60fps target
 - Session unlocks for Austin's Gun and Austin Suit
 
 **Still stubbed / later**
 
-- One arena only (boss uses the same yard; no extra maps)
 - No streamed music (tiny Web Audio beeps only)
 - No App Store wrapper / Game Center
-- Austin Suit is a colorway, not a new mesh
+- Austin Suit uses a dedicated side PNG (`austin-suit-side.png`); Olive / Steel / Crimson remain tints of the olive Spartan
 - No accounts or online leaderboard
