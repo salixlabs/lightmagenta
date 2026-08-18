@@ -86,8 +86,10 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 }
 .stat.gold i { background: radial-gradient(circle at 35% 30%, #ffe58a, #c99212); }
 .stat.lives i { background: radial-gradient(circle at 35% 30%, #ff7a7a, #9a1b22); border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; }
-.stat.wave { margin-left: auto; gap: 8px; }
-.stat.wave span { font-size: 10px; letter-spacing: 1px; color: #cbb48a; }
+.stat.mode { margin-left: auto; gap: 8px; }
+.stat.mode.vet strong { color: #e8b4a0; }
+.stat.wave { gap: 8px; }
+.stat.mode span, .stat.wave span { font-size: 10px; letter-spacing: 1px; color: #cbb48a; }
 .iconBtn {
   min-width: 52px;
   min-height: 52px;
@@ -171,7 +173,7 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
   isolation: isolate;
   padding: 4px 6px 6px;
 }
-.heroBtn.sel {
+.heroBtn.sel, .powerBtn.sel {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px #e6b42366;
   background: #3a2c14;
@@ -278,6 +280,7 @@ p, li { line-height: 1.45; }
   box-shadow: 5px 6px var(--ink);
 }
 .primary:active { transform: translate(3px, 3px); box-shadow: 2px 3px var(--ink); }
+.primary.veteran { background: #3a2414; color: #fff8e8; }
 .ghost { background: #fff6dc; color: var(--ink); }
 .link {
   display: block;
