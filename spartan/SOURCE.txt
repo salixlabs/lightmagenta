@@ -1,6 +1,7 @@
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/5b3a811
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/ea2bbb459c04ef8bc5a78766b0acc1a3d7349397
 
-Wave 1: guaranteed Johnson beacon with bright beam/arrow/CALL JOHNSON label.
-sergeant-johnson.png is keyed/tight (939x1019, ~728KB) with UNSC camo hat.
-Files: index.html, README.md, title-spartan-444.png, spartan-444-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png
+Pelican drops, scrolling stages, Shotgun, and in-hand weapons.
+New/updated siblings: pelican-dropship.png, marine-female.png, marine-heavy.png, austin-suit-side.png, title-spartan-444.png, index.html.
+Files: index.html, README.md, title-spartan-444.png, spartan-444-side.png, austin-suit-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png, pelican-dropship.png, marine-female.png, marine-heavy.png
+Source repo stays private.
 Do not pull newer Spartan commits unless CoS scopes a hub update.
