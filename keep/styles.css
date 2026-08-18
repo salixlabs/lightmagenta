@@ -184,14 +184,20 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 .powerBtn.ready { background: #2a3a18; border-color: #7aaa3a; }
 .cd {
   position: absolute;
-  inset: 0;
-  background: #0a0805aa;
-  border-radius: inherit;
+  top: 4px;
+  right: 4px;
+  inset: auto;
+  width: 28px;
+  height: 28px;
+  background: #0a0805ee;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 700 16px Palatino, serif;
+  font: 700 12px Palatino, serif;
   color: var(--gold);
+  pointer-events: none;
 }
 .scr {
   position: fixed;
@@ -203,6 +209,7 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 .scr[hidden] { display: none !important; }
+.sheet[hidden], .hud[hidden], #toast[hidden] { display: none !important; }
 .scr.on { display: flex; }
 .veil {
   position: absolute;
@@ -288,4 +295,17 @@ ol li { margin: 10px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+.howClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: #fff6dc;
+  font: 700 22px Palatino, serif;
+  line-height: 1;
 }
