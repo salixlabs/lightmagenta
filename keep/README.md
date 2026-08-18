@@ -34,6 +34,12 @@ Web will host this on Light Magenta later.
 - Shadow Aussie -- light archer. Weaker bow shots. Nightfall: a rapid arrow volley.
 - Papa -- stout warm guardian. Slows, body-blocks. Bulwark: a stun slam and a short-lived shield wall.
 
+### Maps
+
+- Amberwatch Road -- 250 gold, 8 pads, 10 waves. The forest road.
+- River Cut -- 190 gold, 6 pads, faster packs. Tighter corners, more water.
+- Night Gate -- 150 gold, 5 pads. Long snake, dusk, and the boss.
+
 ### Powers
 
 Reinforcements drop two temporary soldiers on the road. Mute lives in the top bar.

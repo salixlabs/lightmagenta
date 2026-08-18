@@ -111,13 +111,14 @@ const LEVELS = [
     rune: { x: 560, y: 70 }, banner: { x: 1220, y: 250 }, guard: { x: 1180, y: 360 },
     heroes: [{ id: 'julian', x: 1040, y: 300 }, { id: 'shadow', x: 1000, y: 350 }, { id: 'papa', x: 1080, y: 360 }],
     path: [
-      { x: 20, y: 560 }, { x: 160, y: 520 }, { x: 220, y: 280 }, { x: 400, y: 160 },
-      { x: 620, y: 220 }, { x: 700, y: 420 }, { x: 860, y: 500 }, { x: 1020, y: 360 },
-      { x: 1180, y: 300 }, { x: 1268, y: 280 }
+      { x: 16, y: 580 }, { x: 170, y: 560 }, { x: 250, y: 400 }, { x: 170, y: 250 },
+      { x: 340, y: 140 }, { x: 540, y: 160 }, { x: 640, y: 300 }, { x: 540, y: 440 },
+      { x: 720, y: 540 }, { x: 920, y: 500 }, { x: 1060, y: 340 }, { x: 1180, y: 280 },
+      { x: 1268, y: 270 }
     ],
     pads: [
-      { x: 160, y: 620 }, { x: 320, y: 200 }, { x: 560, y: 120 },
-      { x: 720, y: 520 }, { x: 960, y: 220 }, { x: 1100, y: 420 }
+      { x: 90, y: 470 }, { x: 320, y: 280 }, { x: 480, y: 80 },
+      { x: 700, y: 380 }, { x: 860, y: 620 }, { x: 1120, y: 200 }
     ],
     waves: W2
   },
@@ -126,13 +127,14 @@ const LEVELS = [
     rune: { x: 640, y: 80 }, banner: { x: 1220, y: 360 }, guard: { x: 1188, y: 500 },
     heroes: [{ id: 'julian', x: 1080, y: 400 }, { id: 'shadow', x: 1040, y: 450 }, { id: 'papa', x: 1120, y: 460 }],
     path: [
-      { x: 16, y: 200 }, { x: 180, y: 180 }, { x: 280, y: 360 }, { x: 240, y: 560 },
-      { x: 420, y: 620 }, { x: 640, y: 520 }, { x: 720, y: 280 }, { x: 900, y: 160 },
-      { x: 1080, y: 260 }, { x: 1160, y: 480 }, { x: 1268, y: 400 }
+      { x: 16, y: 190 }, { x: 200, y: 150 }, { x: 340, y: 280 }, { x: 220, y: 440 },
+      { x: 280, y: 600 }, { x: 500, y: 640 }, { x: 660, y: 500 }, { x: 560, y: 320 },
+      { x: 720, y: 170 }, { x: 920, y: 150 }, { x: 1060, y: 280 }, { x: 940, y: 460 },
+      { x: 1100, y: 560 }, { x: 1268, y: 400 }
     ],
     pads: [
-      { x: 120, y: 300 }, { x: 360, y: 500 }, { x: 640, y: 360 },
-      { x: 880, y: 80 }, { x: 1100, y: 360 }
+      { x: 80, y: 320 }, { x: 380, y: 500 }, { x: 640, y: 360 },
+      { x: 840, y: 80 }, { x: 1140, y: 360 }
     ],
     waves: W3
   }
@@ -367,8 +369,6 @@ function resetRun(level) {
     { x: 900, y: 110, vx: 12, s: 1.1, t: 2 }
   ];
   hudGold(); hudLives(); hudWave();
-  const brand = document.querySelector('.brand b');
-  if (brand) brand.textContent = L.name.toUpperCase();
   $('#waveBtnLabel').textContent = 'Call Wave 1';
   $('#waveBtnHint').textContent = 'Begin the siege';
   $('#btnWave').classList.add('ready');
@@ -426,7 +426,7 @@ function spawnEnemy(kind, waveIndex) {
   const p = pathAt(0, k.fly);
   state.enemies.push({
     kind, name: k.name, x: p.x, y: p.y, d: 0, ang: 0,
-    hp: k.hp * scale, mhp: k.hp * scale, spd: k.spd, gold: k.gold, armor: k.armor,
+    hp: k.hp * scale, mhp: k.hp * scale, spd: k.spd * (1 + state.level * 0.08), gold: k.gold, armor: k.armor,
     fly: k.fly, r: k.r, leak: k.leak, color: k.color,
     stun: 0, slow: 0, burn: 0, burnDps: 0, flash: 0, dead: false, atkT: 0, bob: Math.random() * 6
   });
@@ -575,14 +575,14 @@ function lionheart(h) {
   h.smash = 0.25;
   livingEnemies().forEach((en) => {
     if (Math.hypot(en.x - h.x, en.y - h.y) < 78) {
-      hurt(en, 42 + (h.empower > 0 ? 12 : 0), '#ffe36a');
+      hurt(en, 42 + (h.empower > 0 ? 12 : 0), '#9ec4ff');
       en.stun = Math.max(en.stun, 0.35);
     }
   });
   state.shake = 10;
   SFX.smash();
   toast('Julian the Brave stands!');
-  state.fx.push({ kind: 'ring', x: h.x, y: h.y, life: 0.45, r: 20, color: '#f0c44a' });
+  state.fx.push({ kind: 'ring', x: h.x, y: h.y, life: 0.45, r: 20, color: '#4a78d8' });
 }
 
 function shootArrow(h, e, dmg) {
@@ -599,7 +599,7 @@ function nightfall(h) {
   h.volley = 6;
   h.volleyGap = 0;
   h.smash = 0.2;
-  SFX.vanish();
+  SFX.bow();
   toast('Nightfall! A rain of arrows.');
 }
 
@@ -1105,6 +1105,11 @@ function draw() {
     c.font = '700 16px Palatino, serif';
     c.textAlign = 'center';
     c.fillText(state.rallyPick ? 'Tap the road to set a rally' : 'Tap the road to drop soldiers', 640, 36);
+  } else if (state.mode === 'play' || state.mode === 'start') {
+    c.fillStyle = 'rgba(244,230,196,0.72)';
+    c.font = '700 13px Palatino, serif';
+    c.textAlign = 'left';
+    c.fillText(currentLevel().name, 16, 26);
   }
 }
 
@@ -1113,36 +1118,51 @@ function drawSky(c) {
   const g = c.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, dusk > 0.3 ? '#2a3a68' : dusk > 0 ? '#6a8ab8' : '#7eb7d8');
   g.addColorStop(0.42, dusk > 0.3 ? '#6a4a58' : dusk > 0 ? '#b8a070' : '#c5d98a');
-  g.addColorStop(1, dusk > 0.3 ? '#243820' : '#6f9a44');
+  g.addColorStop(1, dusk > 0.3 ? '#243820' : dusk > 0 ? '#5a8a4a' : '#6f9a44');
   c.fillStyle = g;
   c.fillRect(-40, -40, W + 80, H + 80);
-  blob(c, 1080, 78, 38, 38); paint(c, '#ffe36a', '#e0b030', 3);
-  c.globalAlpha = 0.22;
-  blob(c, 1080, 78, 64, 64); paint(c, '#fff2a0', '#fff2a0', 0);
-  c.globalAlpha = 1;
-  [[180, 70, 1], [420, 50, 1.2], [760, 64, 0.9]].forEach(([x, y, s]) => {
-    c.save(); c.translate(x, y); c.scale(s, s);
-    blob(c, 0, 0, 36, 16); paint(c, '#f4f7f2', '#d0d8d0', 2);
-    blob(c, 24, 4, 22, 12); paint(c, '#ffffff', '#d0d8d0', 2);
-    blob(c, -22, 6, 18, 10); paint(c, '#eef3ea', '#d0d8d0', 2);
+  if (dusk > 0.3) {
+    blob(c, 200, 86, 28, 28); paint(c, '#e8e0c8', '#c0b890', 3);
+    c.globalAlpha = 0.18;
+    blob(c, 200, 86, 48, 48); paint(c, '#fff4d0', '#fff4d0', 0);
+    c.globalAlpha = 1;
+  } else {
+    blob(c, 1080, 78, 38, 38); paint(c, '#ffe36a', '#e0b030', 3);
+    c.globalAlpha = 0.22;
+    blob(c, 1080, 78, 64, 64); paint(c, '#fff2a0', '#fff2a0', 0);
+    c.globalAlpha = 1;
+  }
+  const clouds = dusk > 0.3
+    ? [[320, 64, 0.85], [700, 48, 1.05]]
+    : [[180, 70, 1], [420, 50, 1.2], [760, 64, 0.9]];
+  clouds.forEach(([x, y, sc]) => {
+    c.save(); c.translate(x, y); c.scale(sc, sc);
+    const fill = dusk > 0.3 ? '#6a6078' : '#f4f7f2';
+    const edge = dusk > 0.3 ? '#3a3048' : '#d0d8d0';
+    blob(c, 0, 0, 36, 16); paint(c, fill, edge, 2);
+    blob(c, 24, 4, 22, 12); paint(c, dusk > 0.3 ? '#7a7088' : '#ffffff', edge, 2);
+    blob(c, -22, 6, 18, 10); paint(c, dusk > 0.3 ? '#5a5068' : '#eef3ea', edge, 2);
     c.restore();
   });
 }
 
 function drawHills(c) {
+  const dusk = currentLevel().dusk || 0;
+  const top = dusk > 0.3 ? '#35502c' : dusk > 0 ? '#3f6e3a' : '#4d7c32';
+  const bot = dusk > 0.3 ? '#243820' : dusk > 0 ? '#33582a' : '#3f6a2a';
   c.beginPath();
   c.moveTo(-20, 520);
   c.quadraticCurveTo(200, 400, 420, 460);
   c.quadraticCurveTo(700, 540, 980, 430);
   c.quadraticCurveTo(1180, 360, 1320, 400);
   c.lineTo(1320, 760); c.lineTo(-20, 760); c.closePath();
-  paint(c, '#4d7c32', '#2d4a20', 4);
+  paint(c, top, '#2d4a20', 4);
   c.beginPath();
   c.moveTo(-20, 600);
   c.quadraticCurveTo(300, 520, 640, 610);
   c.quadraticCurveTo(960, 690, 1320, 560);
   c.lineTo(1320, 760); c.lineTo(-20, 760); c.closePath();
-  paint(c, '#3f6a2a', '#2a441c', 3);
+  paint(c, bot, '#2a441c', 3);
 }
 
 function drawTree(c, x, y, s, tone) {
@@ -1157,20 +1177,57 @@ function drawTree(c, x, y, s, tone) {
 }
 
 function drawForest(c) {
-  const tones = ['#2f6a2c', '#3a7a30', '#245820', '#4a8a38'];
-  const spots = [
-    [30, 360, 1.3], [70, 300, 1.1], [20, 250, 0.9], [110, 240, 1.2], [60, 200, 1],
-    [150, 180, 0.85], [40, 500, 1.1], [90, 560, 1.3], [20, 600, 1], [160, 600, 0.9],
-    [200, 160, 0.8], [260, 120, 1], [340, 90, 0.85]
-  ];
-  spots.forEach(([x, y, s], i) => drawTree(c, x, y, s, tones[i % 4]));
-  [[300, 560], [640, 640], [860, 200], [500, 360]].forEach(([x, y]) => {
-    blob(c, x, y, 22, 12); paint(c, '#8a8070', '#3a3228', 3);
-    blob(c, x + 14, y + 4, 12, 8); paint(c, '#6e675c', '#3a3228', 3);
+  const lv = state.level;
+  const dusk = currentLevel().dusk || 0;
+  const tones = dusk > 0.3
+    ? ['#1e3a22', '#2a4a28', '#163018', '#304a2a']
+    : ['#2f6a2c', '#3a7a30', '#245820', '#4a8a38'];
+  const spots = lv === 1
+    ? [[30, 360, 1.1], [70, 300, 0.9], [20, 250, 0.8], [40, 500, 1], [90, 560, 1.1], [160, 600, 0.8]]
+    : [
+      [30, 360, 1.3], [70, 300, 1.1], [20, 250, 0.9], [110, 240, 1.2], [60, 200, 1],
+      [150, 180, 0.85], [40, 500, 1.1], [90, 560, 1.3], [20, 600, 1], [160, 600, 0.9],
+      [200, 160, 0.8], [260, 120, 1], [340, 90, 0.85]
+    ];
+  spots.forEach(([x, y, sc], i) => drawTree(c, x, y, sc, tones[i % 4]));
+  const rocks = lv === 2
+    ? [[180, 520], [300, 560], [460, 200], [640, 640], [780, 360], [860, 200], [500, 360], [980, 120]]
+    : lv === 1
+      ? [[300, 560], [640, 640]]
+      : [[300, 560], [640, 640], [860, 200], [500, 360]];
+  const rock = dusk > 0.3 ? '#5a5248' : '#8a8070';
+  const rock2 = dusk > 0.3 ? '#3a342c' : '#6e675c';
+  rocks.forEach(([x, y]) => {
+    blob(c, x, y, 22, 12); paint(c, rock, '#3a3228', 3);
+    blob(c, x + 14, y + 4, 12, 8); paint(c, rock2, '#3a3228', 3);
   });
 }
 
 function drawRiver(c) {
+  const lv = state.level;
+  const water = lv === 2 ? '#1a3a58' : lv === 1 ? '#2a6a9a' : '#3a7ea8';
+  const edge = lv === 2 ? '#0a2030' : '#1a3a50';
+  if (lv === 1) {
+    c.beginPath();
+    c.moveTo(-10, 430);
+    c.quadraticCurveTo(180, 390, 320, 300);
+    c.quadraticCurveTo(480, 210, 700, 280);
+    c.quadraticCurveTo(900, 360, 1080, 220);
+    c.quadraticCurveTo(1180, 140, 1320, 120);
+    c.lineTo(1320, 210);
+    c.quadraticCurveTo(1160, 230, 1060, 300);
+    c.quadraticCurveTo(880, 430, 680, 360);
+    c.quadraticCurveTo(480, 290, 300, 380);
+    c.quadraticCurveTo(140, 460, -10, 510);
+    c.closePath();
+    paint(c, water, edge, 3);
+    c.globalAlpha = 0.4;
+    c.beginPath();
+    c.moveTo(40, 450); c.quadraticCurveTo(400, 280, 900, 320);
+    c.strokeStyle = '#cfefff'; c.lineWidth = 5; c.stroke();
+    c.globalAlpha = 1;
+    return;
+  }
   c.beginPath();
   c.moveTo(700, 720);
   c.quadraticCurveTo(740, 600, 790, 540);
@@ -1183,11 +1240,11 @@ function drawRiver(c) {
   c.quadraticCurveTo(880, 530, 840, 620);
   c.quadraticCurveTo(810, 680, 800, 730);
   c.closePath();
-  paint(c, '#3a7ea8', '#1a3a50', 3);
-  c.globalAlpha = 0.35;
+  paint(c, water, edge, 3);
+  c.globalAlpha = lv === 2 ? 0.18 : 0.35;
   c.beginPath();
   c.moveTo(820, 680); c.quadraticCurveTo(860, 520, 1000, 260);
-  c.strokeStyle = '#cfefff'; c.lineWidth = 4; c.stroke();
+  c.strokeStyle = lv === 2 ? '#8ab0c8' : '#cfefff'; c.lineWidth = 4; c.stroke();
   c.globalAlpha = 1;
 }
 
@@ -1209,9 +1266,12 @@ function drawPath(c) {
 }
 
 function drawBridge(c) {
+  const lv = state.level;
+  if (lv === 2) return;
   c.save();
-  c.translate(812, 498);
-  c.rotate(0.55);
+  if (lv === 1) c.translate(700, 330);
+  else c.translate(812, 498);
+  c.rotate(lv === 1 ? 0.25 : 0.55);
   rr(c, -46, -16, 92, 32, 4); paint(c, '#8a5a30', '#2a1a10', 3);
   for (let i = -3; i <= 3; i++) {
     c.beginPath(); c.moveTo(i * 12, -14); c.lineTo(i * 12, 14);
@@ -1225,7 +1285,8 @@ function drawBridge(c) {
 
 function drawKeep(c) {
   c.save();
-  c.translate(1210, 300);
+  const end = PATH.pts[PATH.pts.length - 1];
+  c.translate(1210, clamp((end.y || 368) - 68, 230, 380));
   rr(c, -70, 20, 150, 130, 6); paint(c, '#8d8678', '#2a241c', 4);
   rr(c, -8, 86, 36, 64, 4); paint(c, '#3a2a1c', '#1a140c', 3);
   blob(c, 10, 118, 16, 22); paint(c, '#2a1c12', '#1a140c', 2);
@@ -1687,7 +1748,7 @@ function selectHero(h, fromSeq) {
     if (state.heroSeq.length > 3) state.heroSeq.shift();
     if (state.heroSeq[0] === 'julian' && state.heroSeq[1] === 'shadow' && state.heroSeq[2] === 'papa') {
       state.heroSeq = [];
-      if (state.tripleCd <= 0) fireTriple('Julian, Shadow, Papa — 7 / 7 / 7.');
+      if (state.tripleCd <= 0) fireTriple('Julian, Shadow Aussie, Papa — 7 / 7 / 7.');
       else { addGold(7); toast('A quiet 7 for the three.'); }
     }
   }
@@ -1871,7 +1932,7 @@ function bindUI() {
   $('#btnResume').onclick = resumeGame;
   $('#btnRestartPause').onclick = restartFromOverlay;
   $('#btnRetry').onclick = restartFromOverlay;
-  $('#btnVictory').onclick = restartFromOverlay;
+  $('#btnVictory').onclick = startPlay;
   $('#btnNext').onclick = startNextSiege;
   $('#btnMute').onclick = () => {
     soundOn = !soundOn;
