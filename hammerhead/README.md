@@ -2,6 +2,8 @@
 
 A funny, touch-first photo smashing game from Salix Labs. Choose a photo, adjust the private in-browser head crop, then flatten it with increasingly silly tools.
 
+Web game version **0.2.0** — see `VERSION` and `SOURCE.txt`. This stamp matches the `7946d8b` gameplay (rectangle squash, 1 coin/hit, 100 flatten bonus, toy ladder).
+
 The smash, coin, and unlock **rules** live in `game/logic.js` with no DOM, canvas, or Web Audio. The browser (`game.js`, `index.html`, `styles.css`) only renders. A later Swift/iOS UI can reuse those rules without rewriting the economy.
 
 ## Play locally

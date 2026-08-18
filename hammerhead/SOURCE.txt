@@ -1,5 +1,6 @@
-Pinned playable copy from https://github.com/salixlabs/hammerhead/commit/7946d8b7f3e38a152f48b2380cee132791b647c4
+HammerHead 0.2.0
+Pinned playable copy from https://github.com/salixlabs/hammerhead/commit/be6c41d16954db5c2b6b568c78948fbcd39921a2
 
-Files: index.html, game.js, styles.css, README.md, game/logic.js
+Files: index.html, game.js, styles.css, README.md, game/logic.js, VERSION
 Photo handling is client-only: file picker + object URL + canvas. No upload, fetch, or remote photo storage.
 Source repo stays private.

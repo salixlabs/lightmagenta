@@ -284,6 +284,13 @@ p, li { line-height: 1.45; }
   color: #5a3a14;
 }
 .fine { display: block; margin-top: 8px; color: #6a5438; letter-spacing: 0; }
+.ver {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #8a7460;
+}
 .whisper { font-size: 14px; color: #5a4630; }
 .card.win h2 { color: #7a1c20; }
 ol { padding-left: 20px; }
