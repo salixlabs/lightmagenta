@@ -53,33 +53,96 @@ const KINDS = {
   boss: { name: 'Marrow the Gatebreaker', hp: 1480, spd: 21, gold: 90, armor: 7, fly: false, r: 30, leak: 5, color: '#5a2028' }
 };
 
-const WAVES = [
+const W1 = [
   { title: 'Stirring in the Wood', packs: [{ k: 'runner', n: 8, gap: 0.70 }] },
   { title: 'Heavy Footfalls', packs: [{ k: 'runner', n: 8, gap: 0.55 }, { k: 'brute', n: 2, gap: 1.5, wait: 3.2 }] },
   { title: 'Something on the Wind', packs: [{ k: 'runner', n: 6, gap: 0.50 }, { k: 'bat', n: 6, gap: 0.55, wait: 2.0 }] },
   { title: 'The Road Thickens', packs: [{ k: 'runner', n: 12, gap: 0.42 }, { k: 'brute', n: 4, gap: 1.1, wait: 2.2 }] },
   { title: 'Night and Oak', packs: [{ k: 'bat', n: 8, gap: 0.42 }, { k: 'runner', n: 8, gap: 0.40, wait: 1.2 }, { k: 'brute', n: 3, gap: 1.2, wait: 4.0 }] },
   { title: 'A Proper Row', packs: [{ k: 'runner', n: 16, gap: 0.34 }, { k: 'brute', n: 6, gap: 0.95, wait: 3.0 }] },
-  { title: "Julian's Favor", bonus: 77, cheer: true, packs: [{ k: 'runner', n: 10, gap: 0.38 }, { k: 'bat', n: 6, gap: 0.48, wait: 1.6 }, { k: 'brute', n: 4, gap: 1.0, wait: 4.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 10, gap: 0.38 }, { k: 'bat', n: 6, gap: 0.48, wait: 1.6 }, { k: 'brute', n: 4, gap: 1.0, wait: 4.0 }] },
   { title: 'Wings and Iron', packs: [{ k: 'bat', n: 12, gap: 0.36 }, { k: 'brute', n: 8, gap: 0.85, wait: 2.0 }, { k: 'runner', n: 10, gap: 0.34, wait: 5.0 }] },
   { title: 'The Last Ordinary Hour', packs: [{ k: 'runner', n: 18, gap: 0.30 }, { k: 'brute', n: 8, gap: 0.72, wait: 2.0 }, { k: 'bat', n: 10, gap: 0.38, wait: 4.0 }] },
-  { title: 'The Gatebreaker', packs: [{ k: 'boss', n: 1, gap: 0 }, { k: 'brute', n: 6, gap: 1.25, wait: 3.0 }, { k: 'runner', n: 12, gap: 0.36, wait: 2.0 }, { k: 'bat', n: 8, gap: 0.42, wait: 8.0 }] }
+  { title: 'Clear the Road', packs: [{ k: 'brute', n: 6, gap: 1.1, wait: 0 }, { k: 'runner', n: 14, gap: 0.34, wait: 2.0 }, { k: 'bat', n: 8, gap: 0.40, wait: 6.0 }] }
+];
+const W2 = [
+  { title: 'Wet Boots', packs: [{ k: 'runner', n: 10, gap: 0.50 }, { k: 'brute', n: 2, gap: 1.2, wait: 2.0 }] },
+  { title: 'The Cut Narrows', packs: [{ k: 'runner', n: 12, gap: 0.40 }, { k: 'bat', n: 6, gap: 0.45, wait: 1.4 }] },
+  { title: 'Oak in the Water', packs: [{ k: 'brute', n: 5, gap: 0.85 }, { k: 'runner', n: 10, gap: 0.36, wait: 1.6 }] },
+  { title: 'A Bad Wind', packs: [{ k: 'bat', n: 12, gap: 0.32 }, { k: 'brute', n: 4, gap: 0.9, wait: 2.0 }] },
+  { title: 'Shoulder to Shoulder', packs: [{ k: 'runner', n: 18, gap: 0.30 }, { k: 'brute', n: 6, gap: 0.75, wait: 2.2 }] },
+  { title: 'Both Banks', packs: [{ k: 'bat', n: 10, gap: 0.30 }, { k: 'runner', n: 12, gap: 0.28, wait: 1.0 }, { k: 'brute', n: 5, gap: 0.8, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 14, gap: 0.28 }, { k: 'bat', n: 10, gap: 0.32, wait: 1.2 }, { k: 'brute', n: 6, gap: 0.7, wait: 3.2 }] },
+  { title: 'No Dry Ground', packs: [{ k: 'brute', n: 8, gap: 0.65 }, { k: 'runner', n: 16, gap: 0.26, wait: 1.5 }, { k: 'bat', n: 10, gap: 0.30, wait: 4.0 }] },
+  { title: 'The Ford Breaks', packs: [{ k: 'runner', n: 20, gap: 0.24 }, { k: 'brute', n: 8, gap: 0.60, wait: 1.8 }, { k: 'bat', n: 12, gap: 0.28, wait: 3.5 }] },
+  { title: 'Hold the Crossing', packs: [{ k: 'brute', n: 10, gap: 0.55 }, { k: 'runner', n: 16, gap: 0.24, wait: 1.2 }, { k: 'bat', n: 12, gap: 0.26, wait: 5.0 }] }
+];
+const W3 = [
+  { title: 'Dusk Banners', packs: [{ k: 'runner', n: 12, gap: 0.38 }, { k: 'bat', n: 8, gap: 0.36, wait: 1.0 }] },
+  { title: 'Iron First', packs: [{ k: 'brute', n: 6, gap: 0.70 }, { k: 'runner', n: 12, gap: 0.30, wait: 1.4 }] },
+  { title: 'Nightwings Close', packs: [{ k: 'bat', n: 16, gap: 0.26 }, { k: 'brute', n: 5, gap: 0.7, wait: 1.8 }] },
+  { title: 'The Snake Tightens', packs: [{ k: 'runner', n: 18, gap: 0.26 }, { k: 'brute', n: 7, gap: 0.58, wait: 1.6 }, { k: 'bat', n: 8, gap: 0.28, wait: 3.0 }] },
+  { title: 'No Soft Wave', packs: [{ k: 'brute', n: 8, gap: 0.55 }, { k: 'runner', n: 16, gap: 0.24, wait: 1.0 }, { k: 'bat', n: 12, gap: 0.24, wait: 3.2 }] },
+  { title: 'All Three Kinds', packs: [{ k: 'bat', n: 14, gap: 0.22 }, { k: 'runner', n: 16, gap: 0.22, wait: 0.8 }, { k: 'brute', n: 8, gap: 0.52, wait: 2.8 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 16, gap: 0.22 }, { k: 'bat', n: 14, gap: 0.22, wait: 1.0 }, { k: 'brute', n: 8, gap: 0.50, wait: 2.6 }] },
+  { title: 'The Gate Shudders', packs: [{ k: 'brute', n: 10, gap: 0.48 }, { k: 'runner', n: 18, gap: 0.20, wait: 1.2 }, { k: 'bat', n: 14, gap: 0.22, wait: 4.0 }] },
+  { title: 'Almost Night', packs: [{ k: 'runner', n: 22, gap: 0.18 }, { k: 'brute', n: 10, gap: 0.45, wait: 1.4 }, { k: 'bat', n: 16, gap: 0.20, wait: 3.2 }] },
+  { title: 'The Gatebreaker', packs: [{ k: 'boss', n: 1, gap: 0 }, { k: 'brute', n: 8, gap: 0.85, wait: 2.2 }, { k: 'runner', n: 16, gap: 0.22, wait: 1.5 }, { k: 'bat', n: 12, gap: 0.24, wait: 7.0 }] }
 ];
 
-const PATH_PTS = [
-  { x: 18, y: 438 }, { x: 150, y: 418 }, { x: 236, y: 318 }, { x: 318, y: 198 },
-  { x: 468, y: 148 }, { x: 610, y: 188 }, { x: 698, y: 318 }, { x: 758, y: 478 },
-  { x: 898, y: 538 }, { x: 1048, y: 478 }, { x: 1148, y: 392 }, { x: 1268, y: 368 }
+const LEVELS = [
+  {
+    name: 'Amberwatch Road', dusk: 0, gold: 250,
+    rune: { x: 572, y: 86 }, banner: { x: 1220, y: 292 }, guard: { x: 1172, y: 448 },
+    heroes: [{ id: 'julian', x: 980, y: 360 }, { id: 'shadow', x: 940, y: 410 }, { id: 'papa', x: 1020, y: 420 }],
+    path: [
+      { x: 18, y: 438 }, { x: 150, y: 418 }, { x: 236, y: 318 }, { x: 318, y: 198 },
+      { x: 468, y: 148 }, { x: 610, y: 188 }, { x: 698, y: 318 }, { x: 758, y: 478 },
+      { x: 898, y: 538 }, { x: 1048, y: 478 }, { x: 1148, y: 392 }, { x: 1268, y: 368 }
+    ],
+    pads: [
+      { x: 188, y: 528 }, { x: 348, y: 292 }, { x: 498, y: 78 }, { x: 628, y: 318 },
+      { x: 818, y: 358 }, { x: 928, y: 618 }, { x: 1088, y: 292 }, { x: 1138, y: 538 }
+    ],
+    waves: W1
+  },
+  {
+    name: 'River Cut', dusk: 0.22, gold: 190,
+    rune: { x: 560, y: 70 }, banner: { x: 1220, y: 250 }, guard: { x: 1180, y: 360 },
+    heroes: [{ id: 'julian', x: 1040, y: 300 }, { id: 'shadow', x: 1000, y: 350 }, { id: 'papa', x: 1080, y: 360 }],
+    path: [
+      { x: 20, y: 560 }, { x: 160, y: 520 }, { x: 220, y: 280 }, { x: 400, y: 160 },
+      { x: 620, y: 220 }, { x: 700, y: 420 }, { x: 860, y: 500 }, { x: 1020, y: 360 },
+      { x: 1180, y: 300 }, { x: 1268, y: 280 }
+    ],
+    pads: [
+      { x: 160, y: 620 }, { x: 320, y: 200 }, { x: 560, y: 120 },
+      { x: 720, y: 520 }, { x: 960, y: 220 }, { x: 1100, y: 420 }
+    ],
+    waves: W2
+  },
+  {
+    name: 'Night Gate', dusk: 0.48, gold: 150,
+    rune: { x: 640, y: 80 }, banner: { x: 1220, y: 360 }, guard: { x: 1188, y: 500 },
+    heroes: [{ id: 'julian', x: 1080, y: 400 }, { id: 'shadow', x: 1040, y: 450 }, { id: 'papa', x: 1120, y: 460 }],
+    path: [
+      { x: 16, y: 200 }, { x: 180, y: 180 }, { x: 280, y: 360 }, { x: 240, y: 560 },
+      { x: 420, y: 620 }, { x: 640, y: 520 }, { x: 720, y: 280 }, { x: 900, y: 160 },
+      { x: 1080, y: 260 }, { x: 1160, y: 480 }, { x: 1268, y: 400 }
+    ],
+    pads: [
+      { x: 120, y: 300 }, { x: 360, y: 500 }, { x: 640, y: 360 },
+      { x: 880, y: 80 }, { x: 1100, y: 360 }
+    ],
+    waves: W3
+  }
 ];
 
-const PADS = [
-  { x: 188, y: 528 }, { x: 348, y: 292 }, { x: 498, y: 78 }, { x: 628, y: 318 },
-  { x: 818, y: 358 }, { x: 928, y: 618 }, { x: 1088, y: 292 }, { x: 1138, y: 538 }
-];
-
-const RUNE = { x: 572, y: 86 };
-const BANNER = { x: 1220, y: 292 };
-const GUARD = { x: 1172, y: 448 };
+function currentLevel() { return LEVELS[state.level] || LEVELS[0]; }
+function currentWaves() { return currentLevel().waves; }
+function runePos() { return currentLevel().rune; }
+function bannerPos() { return currentLevel().banner; }
+function guardPos() { return currentLevel().guard; }
 
 function buildPath(pts) {
   const segs = [];
@@ -92,7 +155,7 @@ function buildPath(pts) {
   }
   return { pts, segs, total };
 }
-const PATH = buildPath(PATH_PTS);
+let PATH = buildPath(LEVELS[0].path);
 
 function pathAt(d, fly) {
   d = clamp(d, 0, PATH.total);
@@ -205,7 +268,8 @@ const state = {
   birds: [],
   reinforceCd: 0,
   callCd: 0,
-  moveMark: null
+  moveMark: null,
+  level: 0
 };
 
 function toast(msg, t) {
@@ -216,7 +280,10 @@ function toast(msg, t) {
 }
 function hudGold() { $('#statGold strong').textContent = String(state.gold); }
 function hudLives() { $('#statLives strong').textContent = String(state.lives); }
-function hudWave() { $('#statWave strong').textContent = state.wave + '/' + WAVES.length; }
+function hudWave() {
+  const n = currentWaves().length;
+  $('#statWave strong').textContent = state.wave + '/' + n;
+}
 
 function addGold(n) {
   state.gold = Math.max(0, (state.gold + n) | 0);
@@ -251,37 +318,36 @@ function floatText(x, y, text, color) {
 function makeHero(id, x, y) {
   const base = {
     julian: { name: 'Sir Julian', title: 'the Brave', hp: 240, dmg: 20, range: 48, spd: 100, rate: 0.52, ability: 'Lionheart', cdMax: 12 },
-    shadow: { name: 'Shadow', title: 'of the Cloak', hp: 118, dmg: 16, range: 40, spd: 148, rate: 0.36, ability: 'Nightfall', cdMax: 11 },
+    shadow: { name: 'Shadow Aussie', title: 'the Archer', hp: 110, dmg: 8, range: 168, spd: 140, rate: 0.62, ability: 'Nightfall', cdMax: 11 },
     papa: { name: 'Papa', title: 'the Warm', hp: 350, dmg: 11, range: 52, spd: 70, rate: 0.68, ability: 'Bulwark', cdMax: 16 }
   }[id];
   return {
     id, x, y, tx: x, ty: y,
     hp: base.hp, mhp: base.hp, dmg: base.dmg, range: base.range, spd: base.spd, rate: base.rate,
     name: base.name, title: base.title, ability: base.ability, cdMax: base.cdMax, cd: 0,
-    atkT: 0, pose: 0, facing: 1, glow: 0, vanish: 0, vanishHit: 0, empower: 0, smash: 0, deadT: 0
+    atkT: 0, pose: 0, facing: 1, glow: 0, vanish: 0, vanishHit: 0, empower: 0, smash: 0, deadT: 0, volley: 0, volleyGap: 0
   };
 }
 
-function resetRun() {
+function resetRun(level) {
   hideMenus();
-  state.gold = 250;
+  if (level != null) state.level = level;
+  const L = currentLevel();
+  PATH = buildPath(L.path);
+  state.gold = L.gold;
   state.lives = 21;
   state.wave = 0;
   state.waveStarted = false;
   state.spawnQ = [];
   state.enemies = [];
-  state.towers = PADS.map((p) => ({ x: p.x, y: p.y, type: null, tier: 0, cool: 0, rally: nearestPath(p) }));
+  state.towers = L.pads.map((p) => ({ x: p.x, y: p.y, type: null, tier: 0, cool: 0, rally: nearestPath(p) }));
   state.soldiers = [];
   state.walls = [];
   state.shots = [];
   state.fx = [];
   state.floats = [];
   state.pulses = [];
-  state.heroes = [
-    makeHero('julian', 980, 360),
-    makeHero('shadow', 940, 410),
-    makeHero('papa', 1020, 420)
-  ];
+  state.heroes = L.heroes.map((h) => makeHero(h.id, h.x, h.y));
   state.selected = null;
   state.placing = null;
   state.rallyPick = null;
@@ -291,7 +357,7 @@ function resetRun() {
   state.bannerTaps = 0;
   state.heroSeq = [];
   state.tripleCd = 0;
-  state.lastGold = 250;
+  state.lastGold = L.gold;
   state.reinforceCd = 0;
   state.callCd = 0;
   state.moveMark = null;
@@ -301,6 +367,8 @@ function resetRun() {
     { x: 900, y: 110, vx: 12, s: 1.1, t: 2 }
   ];
   hudGold(); hudLives(); hudWave();
+  const brand = document.querySelector('.brand b');
+  if (brand) brand.textContent = L.name.toUpperCase();
   $('#waveBtnLabel').textContent = 'Call Wave 1';
   $('#waveBtnHint').textContent = 'Begin the siege';
   $('#btnWave').classList.add('ready');
@@ -354,7 +422,7 @@ function kill(e) {
 
 function spawnEnemy(kind, waveIndex) {
   const k = KINDS[kind];
-  const scale = 1 + waveIndex * 0.085;
+  const scale = 1 + waveIndex * 0.085 + state.level * 0.16;
   const p = pathAt(0, k.fly);
   state.enemies.push({
     kind, name: k.name, x: p.x, y: p.y, d: 0, ang: 0,
@@ -365,7 +433,8 @@ function spawnEnemy(kind, waveIndex) {
 }
 
 function queueWave(idx) {
-  const w = WAVES[idx];
+  const waves = currentWaves();
+  const w = waves[idx];
   if (!w) return;
   state.wave = idx + 1;
   state.waveStarted = true;
@@ -374,7 +443,7 @@ function queueWave(idx) {
   if (w.bonus) {
     addGold(w.bonus);
     SFX.cheer();
-    toast("Julian's Favor! +77 gold. Julian the Brave stands!");
+    toast("Julian's Favor! +7 gold. Julian the Brave stands!");
     state.fx.push({ kind: 'spark', x: 640, y: 90, life: 1.4, r: 28 });
   } else {
     toast(w.title);
@@ -386,7 +455,7 @@ function queueWave(idx) {
     }
   });
   const next = idx + 2;
-  if (next <= WAVES.length) {
+  if (next <= waves.length) {
     $('#waveBtnLabel').textContent = 'Call Wave ' + next;
     $('#waveBtnHint').textContent = '+12 gold';
     $('#btnWave').classList.add('ready');
@@ -399,7 +468,7 @@ function queueWave(idx) {
 
 function tryCallWave() {
   if (state.mode !== 'play') return;
-  if (state.wave >= WAVES.length) return;
+  if (state.wave >= currentWaves().length) return;
   if (state.callCd > 0) return;
   if (state.waveStarted) addGold(12);
   queueWave(state.wave);
@@ -516,23 +585,22 @@ function lionheart(h) {
   state.fx.push({ kind: 'ring', x: h.x, y: h.y, life: 0.45, r: 20, color: '#f0c44a' });
 }
 
-function nightfall(h) {
-  h.vanish = 0.75;
-  h.vanishHit = 0.75;
-  SFX.vanish();
-  toast('Nightfall.');
+function shootArrow(h, e, dmg) {
+  if (!e) return;
+  state.shots.push({
+    x: h.x + (h.facing || 1) * 14, y: h.y - 12,
+    tx: e.x, ty: e.y, target: e,
+    spd: 480, dmg: dmg, splash: 0, type: 'arrow', tier: 0, r: 3
+  });
+  SFX.bow();
 }
 
-function resolveNightfall(h) {
-  const e = weakestEnemy(h, 190) || nearestEnemy(h, 220);
-  if (e) {
-    h.x = clamp(e.x - 16, 20, W - 20);
-    h.y = clamp(e.y, 40, H - 20);
-    h.tx = h.x; h.ty = h.y;
-    hurt(e, h.dmg * 3.2 + (h.empower > 0 ? 10 : 0), '#d8b4ff');
-  }
+function nightfall(h) {
+  h.volley = 6;
+  h.volleyGap = 0;
   h.smash = 0.2;
-  SFX.slash();
+  SFX.vanish();
+  toast('Nightfall! A rain of arrows.');
 }
 
 function bulwark(h) {
@@ -604,14 +672,6 @@ function updateHeroes(dt) {
       }
       return;
     }
-    if (h.vanish > 0) {
-      h.vanish -= dt;
-      if (h.vanish <= 0 && h.vanishHit > 0) {
-        h.vanishHit = 0;
-        resolveNightfall(h);
-      }
-      return;
-    }
     const dx = h.tx - h.x, dy = h.ty - h.y;
     const d = Math.hypot(dx, dy);
     if (d > 4) {
@@ -621,6 +681,19 @@ function updateHeroes(dt) {
       h.facing = dx >= 0 ? 1 : -1;
       h.pose += dt * 8;
     }
+    if (h.volley > 0) {
+      h.volleyGap -= dt;
+      if (h.volleyGap <= 0) {
+        const ve = nearestEnemy(h, 230);
+        if (ve) {
+          h.facing = ve.x >= h.x ? 1 : -1;
+          shootArrow(h, ve, h.dmg * 0.9 + (h.empower > 0 ? 4 : 0));
+        }
+        h.volley--;
+        h.volleyGap = 0.09;
+        h.smash = 0.12;
+      }
+    }
     const e = nearestEnemy(h, h.range + 8);
     h.atkT -= dt;
     if (e && Math.hypot(e.x - h.x, e.y - h.y) <= h.range) {
@@ -628,10 +701,15 @@ function updateHeroes(dt) {
         h.atkT = h.rate;
         h.smash = 0.16;
         const mul = (h.empower > 0 ? 1.8 : 1) * (h.glow > 0 ? 1.3 : 1);
-        const col = h.id === 'julian' ? '#ffe36a' : h.id === 'shadow' ? '#d8b4ff' : '#cfe6ff';
-        hurt(e, h.dmg * mul, col);
-        if (h.id === 'papa') e.slow = Math.max(e.slow, 1.4);
-        SFX.slash();
+        if (h.id === 'shadow') {
+          h.facing = e.x >= h.x ? 1 : -1;
+          shootArrow(h, e, h.dmg * mul);
+        } else {
+          const col = h.id === 'julian' ? '#9ec4ff' : '#cfe6ff';
+          hurt(e, h.dmg * mul, col);
+          if (h.id === 'papa') e.slow = Math.max(e.slow, 1.4);
+          SFX.slash();
+        }
       }
     }
     if (h.id === 'papa') {
@@ -852,11 +930,31 @@ function updateBirds(dt) {
 }
 
 function checkVictory() {
-  if (state.wave < WAVES.length) return;
+  if (state.wave < currentWaves().length) return;
   if (state.spawnQ.length) return;
   if (livingEnemies().length) return;
   if (state.mode !== 'play') return;
-  victory();
+  if (state.level < LEVELS.length - 1) nextSiege();
+  else victory();
+}
+
+function nextSiege() {
+  state.mode = 'next';
+  SFX.cheer();
+  hideMenus();
+  const nxt = LEVELS[state.level + 1];
+  $('#nextTitle').textContent = nxt.name + ' waits.';
+  $('#nextLine').textContent = 'Harder road. Tighter purse. Julian still stands.';
+  $('#scrNext').hidden = false;
+  showHud(false);
+}
+
+function startNextSiege() {
+  $('#scrNext').hidden = true;
+  resetRun(state.level + 1);
+  state.mode = 'play';
+  showHud(true);
+  toast(currentLevel().name + '. Hold the gate.');
 }
 
 function showHud(on) {
@@ -1011,10 +1109,11 @@ function draw() {
 }
 
 function drawSky(c) {
+  const dusk = (currentLevel().dusk || 0);
   const g = c.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#7eb7d8');
-  g.addColorStop(0.42, '#c5d98a');
-  g.addColorStop(1, '#6f9a44');
+  g.addColorStop(0, dusk > 0.3 ? '#2a3a68' : dusk > 0 ? '#6a8ab8' : '#7eb7d8');
+  g.addColorStop(0.42, dusk > 0.3 ? '#6a4a58' : dusk > 0 ? '#b8a070' : '#c5d98a');
+  g.addColorStop(1, dusk > 0.3 ? '#243820' : '#6f9a44');
   c.fillStyle = g;
   c.fillRect(-40, -40, W + 80, H + 80);
   blob(c, 1080, 78, 38, 38); paint(c, '#ffe36a', '#e0b030', 3);
@@ -1096,8 +1195,8 @@ function drawPath(c) {
   c.lineJoin = 'round';
   c.lineCap = 'round';
   c.beginPath();
-  c.moveTo(PATH_PTS[0].x, PATH_PTS[0].y);
-  for (let i = 1; i < PATH_PTS.length; i++) c.lineTo(PATH_PTS[i].x, PATH_PTS[i].y);
+  c.moveTo(PATH.pts[0].x, PATH.pts[0].y);
+  for (let i = 1; i < PATH.pts.length; i++) c.lineTo(PATH.pts[i].x, PATH.pts[i].y);
   c.strokeStyle = '#6a4a28'; c.lineWidth = 52; c.stroke();
   c.strokeStyle = '#c2a06a'; c.lineWidth = 40; c.stroke();
   c.strokeStyle = '#d8b87a'; c.lineWidth = 18; c.stroke();
@@ -1154,16 +1253,17 @@ function drawKeep(c) {
 }
 
 function drawDecor(c) {
-  blob(c, RUNE.x, RUNE.y, 16, 12); paint(c, '#6e6a60', '#2a241c', 3);
+  const rp = runePos(), gp = guardPos();
+  blob(c, rp.x, rp.y, 16, 12); paint(c, '#6e6a60', '#2a241c', 3);
   c.fillStyle = '#c9a227';
   c.font = '700 11px Palatino, serif';
   c.textAlign = 'center';
   c.globalAlpha = 0.55;
-  c.fillText('7', RUNE.x, RUNE.y + 4);
+  c.fillText('7', rp.x, rp.y + 4);
   c.globalAlpha = 1;
 
   c.save();
-  c.translate(GUARD.x, GUARD.y);
+  c.translate(gp.x, gp.y);
   blob(c, 0, 10, 14, 8); paint(c, '#4a3a28', '#1a140c', 2);
   blob(c, 10, 0, 10, 8); paint(c, '#d4b08a', '#1a140c', 2);
   c.beginPath(); c.moveTo(-8, 8); c.lineTo(8, 4); c.lineTo(6, 16); c.closePath();
@@ -1387,16 +1487,16 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
   blob(c, 0, 16, 10, 4); paint(c, '#2a1a10', '#2a1a10', 0);
   if (id === 'julian') {
     c.beginPath(); c.moveTo(-6, -4); c.quadraticCurveTo(-22, 4, -16, 22); c.lineTo(4, 16); c.closePath();
-    paint(c, '#b4232a', '#1a140c', 3);
-    rr(c, -10, -10, 20, 22, 4); paint(c, '#e6b423', '#1a140c', 3);
-    blob(c, 0, -20, 9, 8); paint(c, '#d4b08a', '#1a140c', 2);
-    rr(c, -8, -30, 16, 12, 3); paint(c, '#e6b423', '#1a140c', 2);
-    c.beginPath(); c.moveTo(2, -30); c.quadraticCurveTo(16, -44, 6, -28); paint(c, '#b4232a', '#1a140c', 2);
+    paint(c, '#1d3a7a', '#0a1020', 3);
+    rr(c, -10, -10, 20, 22, 4); paint(c, '#1a1c24', '#0a1020', 3);
+    blob(c, 0, -20, 9, 8); paint(c, '#d4b08a', '#0a1020', 2);
+    rr(c, -8, -30, 16, 12, 3); paint(c, '#141820', '#0a1020', 2);
+    c.beginPath(); c.moveTo(2, -30); c.quadraticCurveTo(16, -44, 6, -28); paint(c, '#2a5aaa', '#0a1020', 2);
     c.save();
     c.translate(-12, 2);
     c.beginPath(); c.moveTo(-10, -8); c.lineTo(8, -4); c.lineTo(8, 12); c.lineTo(-8, 10); c.closePath();
-    paint(c, '#c9a227', '#1a140c', 2);
-    c.fillStyle = '#7a1c20';
+    paint(c, '#2a4a8a', '#0a1020', 2);
+    c.fillStyle = '#c9d8ff';
     c.font = '700 7px Palatino, serif';
     c.textAlign = 'center';
     c.fillText('777', -1, 4);
@@ -1404,10 +1504,11 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
     c.save();
     c.translate(10, 0);
     c.rotate(arm);
-    c.fillStyle = '#c8b8a0';
-    c.fillRect(0, -3, 26, 5);
-    c.strokeStyle = '#1a140c'; c.lineWidth = 2; c.strokeRect(0, -3, 26, 5);
-    rr(c, 22, -8, 10, 14, 2); paint(c, '#e6e0d0', '#1a140c', 2);
+    c.fillStyle = '#c8d0dc';
+    c.fillRect(0, -2, 28, 4);
+    c.strokeStyle = '#0a1020'; c.lineWidth = 2; c.strokeRect(0, -2, 28, 4);
+    c.beginPath(); c.moveTo(28, -6); c.lineTo(38, 0); c.lineTo(28, 6); c.closePath();
+    paint(c, '#dce6f4', '#0a1020', 2);
     c.restore();
   } else if (id === 'shadow') {
     c.beginPath(); c.moveTo(-8, -8); c.quadraticCurveTo(-20, 10, -6, 22); c.lineTo(10, 16); c.quadraticCurveTo(16, 0, 8, -10); c.closePath();
@@ -1416,11 +1517,18 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
     c.fillStyle = '#d8b4ff';
     c.beginPath(); c.arc(4, -15, 1.8, 0, 7); c.arc(8, -15, 1.8, 0, 7); c.fill();
     c.save();
-    c.translate(8, 0);
-    c.rotate(arm);
-    c.fillStyle = '#c8b8d8';
-    c.fillRect(0, -2, 18, 3);
-    c.fillRect(14, -6, 3, 10);
+    c.translate(10, 2);
+    c.rotate(arm * 0.35);
+    c.strokeStyle = '#3a2a18';
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.arc(10, 0, 14, -1.2, 1.2);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(-4, 0); c.lineTo(22, 0);
+    c.stroke();
+    c.fillStyle = '#d8b4ff';
+    c.beginPath(); c.moveTo(22, 0); c.lineTo(16, -3); c.lineTo(16, 3); c.closePath(); c.fill();
     c.restore();
   } else {
     blob(c, 0, 2, 14, 13); paint(c, '#8a5a32', '#1a140c', 3);
@@ -1439,13 +1547,22 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
 }
 
 function drawShot(c, s) {
-  if (s.type === 'bow') {
-    c.strokeStyle = '#2a1a10';
+  if (s.type === 'bow' || s.type === 'arrow') {
+    const ang = Math.atan2((s.target && s.target.y || s.ty) - s.y, (s.target && s.target.x || s.tx) - s.x);
+    c.save();
+    c.translate(s.x, s.y);
+    c.rotate(ang);
+    c.strokeStyle = s.type === 'arrow' ? '#2a2238' : '#2a1a10';
     c.lineWidth = 2;
     c.beginPath();
-    c.moveTo(s.x - 6, s.y);
-    c.lineTo(s.x + 6, s.y);
+    c.moveTo(-8, 0);
+    c.lineTo(8, 0);
     c.stroke();
+    c.fillStyle = s.type === 'arrow' ? '#d8b4ff' : '#3a2a18';
+    c.beginPath();
+    c.moveTo(8, 0); c.lineTo(2, -3); c.lineTo(2, 3); c.closePath();
+    c.fill();
+    c.restore();
   } else if (s.type === 'sun') {
     blob(c, s.x, s.y, 6, 6); paint(c, '#ffb040', '#8a3a10', 2);
   } else {
@@ -1571,7 +1688,7 @@ function selectHero(h, fromSeq) {
     if (state.heroSeq[0] === 'julian' && state.heroSeq[1] === 'shadow' && state.heroSeq[2] === 'papa') {
       state.heroSeq = [];
       if (state.tripleCd <= 0) fireTriple('Julian, Shadow, Papa — 7 / 7 / 7.');
-      else { addGold(77); toast('A quiet 77 for the three.'); }
+      else { addGold(7); toast('A quiet 7 for the three.'); }
     }
   }
   syncHeroUI();
@@ -1613,10 +1730,10 @@ function syncCds() {
 function tapRune() {
   state.runeTaps++;
   SFX.tap();
-  floatText(RUNE.x, RUNE.y - 16, String(state.runeTaps), '#e6b423');
+  const rp = runePos(); floatText(rp.x, rp.y - 16, String(state.runeTaps), '#e6b423');
   if (state.runeTaps > 0 && state.runeTaps % 7 === 0) {
     if (state.tripleCd <= 0) fireTriple('The stone remembers seven.');
-    else { addGold(77); toast('A secret 77 gold from the grass.'); }
+    else { addGold(7); toast('A secret 7 gold from the grass.'); }
   }
 }
 
@@ -1676,9 +1793,10 @@ function onWorldTap(p) {
     return;
   }
 
-  if (Math.hypot(p.x - RUNE.x, p.y - RUNE.y) < 28) { tapRune(); return; }
-  if (Math.hypot(p.x - BANNER.x, p.y - BANNER.y) < 40) { tapBanner(); return; }
-  if (Math.hypot(p.x - GUARD.x, p.y - GUARD.y) < 32) { tapGuard(); return; }
+  const rp = runePos(), bp = bannerPos(), gp = guardPos();
+  if (Math.hypot(p.x - rp.x, p.y - rp.y) < 28) { tapRune(); return; }
+  if (Math.hypot(p.x - bp.x, p.y - bp.y) < 40) { tapBanner(); return; }
+  if (Math.hypot(p.x - gp.x, p.y - gp.y) < 32) { tapGuard(); return; }
   for (let i = 0; i < state.birds.length; i++) {
     const b = state.birds[i];
     if (Math.hypot(p.x - b.x, p.y - b.y) < 22) { SFX.chirp(); toast('The birds have opinions.'); return; }
@@ -1700,7 +1818,7 @@ function onWorldTap(p) {
 
 function startPlay() {
   ensureAudio();
-  resetRun();
+  resetRun(0);
   state.mode = 'play';
   $('#scrStart').hidden = true;
   $('#scrStart').classList.remove('on');
@@ -1708,12 +1826,13 @@ function startPlay() {
   $('#scrPause').hidden = true;
   $('#scrDefeat').hidden = true;
   $('#scrVictory').hidden = true;
+  $('#scrNext').hidden = true;
   showHud(true);
   resize();
   paintMini('julian', $('#hbJulian .mini'));
   paintMini('shadow', $('#hbShadow .mini'));
   paintMini('papa', $('#hbPapa .mini'));
-  toast('Sir Julian the Brave stands at the gate.');
+  toast(currentLevel().name + '. Sir Julian the Brave stands at the gate.');
 }
 
 function pauseGame() {
@@ -1731,7 +1850,15 @@ function restartFromOverlay() {
   $('#scrPause').hidden = true;
   $('#scrDefeat').hidden = true;
   $('#scrVictory').hidden = true;
+  $('#scrNext').hidden = true;
+  const keep = state.level;
   startPlay();
+  if (keep > 0) {
+    resetRun(keep);
+    state.mode = 'play';
+    showHud(true);
+    toast(currentLevel().name + '. Stand again.');
+  }
 }
 
 function bindUI() {
@@ -1745,6 +1872,7 @@ function bindUI() {
   $('#btnRestartPause').onclick = restartFromOverlay;
   $('#btnRetry').onclick = restartFromOverlay;
   $('#btnVictory').onclick = restartFromOverlay;
+  $('#btnNext').onclick = startNextSiege;
   $('#btnMute').onclick = () => {
     soundOn = !soundOn;
     $('#btnMute').textContent = soundOn ? '♪' : '×';

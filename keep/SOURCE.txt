@@ -1,4 +1,4 @@
-Pinned playable copy from https://github.com/salixlabs/keep/commit/ebe2de59c5af28d3465f82f6a80c50ba7e1c1e3c
+Pinned playable copy from https://github.com/salixlabs/keep/commit/ac9878566e175a45721303ea1c73684338e09f57
 
 Files: index.html, styles.css, game.js, README.md, favicon.svg
 Source repo stays private.
