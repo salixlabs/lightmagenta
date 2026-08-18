@@ -61,6 +61,7 @@ dialog{width:min(480px,90vw);border:4px solid;border-radius:18px;background:var(
 dialog::backdrop{background:#111b}
 .close:first-child{float:right;border:0;background:none;font-size:28px}
 dialog li{margin:15px;line-height:1.4}
+.ver{margin:8px 0 0;font-size:11px;font-weight:700;letter-spacing:.04em;opacity:.55;text-align:center}
 #win{display:none;position:fixed;inset:0;z-index:50;background:#111c;align-items:center;justify-content:center;padding:20px}
 #win.show{display:flex}
 #win article{width:min(470px,92vw);background:var(--c);border:4px solid;border-radius:20px;box-shadow:10px 11px var(--y);padding:23px;text-align:center;animation:pop .35s}
