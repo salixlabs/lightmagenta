@@ -1,5 +1,5 @@
-Keep 0.2.0
-Pinned playable copy from https://github.com/salixlabs/keep/commit/7ff6bdb7f28928eb1074bc11f9fb6e7901ccc611
+Keep 0.2.1
+Pinned playable copy from https://github.com/salixlabs/keep/commit/d2bc99641cba21fbccdd16c5068126ea204f0b6e
 
 Files: index.html, styles.css, game.js, README.md, favicon.svg, VERSION
 Source repo stays private.

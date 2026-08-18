@@ -167,6 +167,8 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
   padding: 4px 6px 6px;
 }
 .heroBtn.sel {
@@ -182,22 +184,27 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 .powerBtn small { font-size: 11px; color: #cbb48a; }
 .powerBtn.call { background: #3a2414; border-color: #a06030; }
 .powerBtn.ready { background: #2a3a18; border-color: #7aaa3a; }
+.heroBtn > *:not(.cd), .powerBtn > *:not(.cd) {
+  position: relative;
+  z-index: 2;
+}
 .cd {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  inset: auto;
-  width: 28px;
-  height: 28px;
-  background: #0a0805ee;
-  border: 2px solid var(--gold);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 700 12px Palatino, serif;
-  color: var(--gold);
+  inset: 0;
+  width: auto;
+  height: auto;
+  background: rgba(8, 6, 4, 0.58);
+  border: 0;
+  border-radius: inherit;
+  display: block;
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
   pointer-events: none;
+  z-index: 1;
+  transform-origin: left center;
+  transform: scaleX(1);
+  will-change: transform;
 }
 .scr {
   position: fixed;
