@@ -204,7 +204,8 @@ const state = {
   lastGold: 250,
   birds: [],
   reinforceCd: 0,
-  callCd: 0
+  callCd: 0,
+  moveMark: null
 };
 
 function toast(msg, t) {
@@ -293,6 +294,7 @@ function resetRun() {
   state.lastGold = 250;
   state.reinforceCd = 0;
   state.callCd = 0;
+  state.moveMark = null;
   state.birds = [
     { x: 220, y: 90, vx: 18, s: 1, t: 0 },
     { x: 640, y: 70, vx: -14, s: 0.85, t: 1.2 },
@@ -562,6 +564,10 @@ function update(dt) {
   state.shake *= 0.88;
   if (state.reinforceCd > 0) state.reinforceCd -= dt;
   if (state.callCd > 0) state.callCd -= dt;
+  if (state.moveMark) {
+    state.moveMark.life -= dt;
+    if (state.moveMark.life <= 0) state.moveMark = null;
+  }
 
   state.spawnQ = state.spawnQ.filter((s) => {
     if (state.t >= s.t) { spawnEnemy(s.k, s.w); return false; }
@@ -856,6 +862,8 @@ function checkVictory() {
 function showHud(on) {
   $('#hudTop').hidden = !on;
   $('#hudBot').hidden = !on;
+  resize();
+  requestAnimationFrame(resize);
 }
 
 function defeat() {
@@ -901,35 +909,39 @@ function rr(c, x, y, w, h, r) {
 
 function view() {
   const r = canvas.getBoundingClientRect();
-  const s = Math.min(r.width / W, r.height / H);
-  return { s, ox: (r.width - W * s) / 2, oy: (r.height - H * s) / 2, r };
+  const sx = r.width / W;
+  const sy = r.height / H;
+  return { s: sx, sx, sy, ox: 0, oy: 0, r };
 }
 
 function resize() {
   const r = canvas.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(2, Math.round(r.width * dpr));
-  canvas.height = Math.max(2, Math.round(r.height * dpr));
+  const w = Math.max(2, Math.round(r.width * dpr));
+  const h = Math.max(2, Math.round(r.height * dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
 }
 
 function worldFromEvent(ev) {
-  const v = view();
+  const r = canvas.getBoundingClientRect();
   return {
-    x: (ev.clientX - v.r.left - v.ox) / v.s,
-    y: (ev.clientY - v.r.top - v.oy) / v.s
+    x: (ev.clientX - r.left) / Math.max(1, r.width) * W,
+    y: (ev.clientY - r.top) / Math.max(1, r.height) * H
   };
 }
 
 function draw() {
   const c = ctx;
   const v = view();
-  const dpr = canvas.width / Math.max(1, v.r.width);
+  const dprX = canvas.width / Math.max(1, v.r.width);
+  const dprY = canvas.height / Math.max(1, v.r.height);
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  c.fillStyle = '#0d120c';
-  c.fillRect(0, 0, v.r.width, v.r.height);
-  c.setTransform(dpr * v.s, 0, 0, dpr * v.s, dpr * v.ox, dpr * v.oy);
+  c.setTransform(dprX * v.sx, 0, 0, dprY * v.sy, 0, 0);
   if (state.shake > 0.4) {
     c.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
   }
@@ -957,6 +969,20 @@ function draw() {
     c.fillText(f.text, f.x, f.y);
     c.globalAlpha = 1;
   });
+  if (state.moveMark && state.moveMark.life > 0) {
+    const m = state.moveMark;
+    c.globalAlpha = clamp(m.life * 2, 0, 1);
+    c.beginPath();
+    c.arc(m.x, m.y, 10 + (1 - m.life) * 8, 0, Math.PI * 2);
+    c.strokeStyle = '#e6b423';
+    c.lineWidth = 3;
+    c.stroke();
+    c.beginPath();
+    c.moveTo(m.x - 7, m.y); c.lineTo(m.x + 7, m.y);
+    c.moveTo(m.x, m.y - 7); c.lineTo(m.x, m.y + 7);
+    c.stroke();
+    c.globalAlpha = 1;
+  }
   if (state.selected && state.selected.kind === 'hero') {
     const h = state.selected.ref;
     if (h && h.hp > 0 && h.vanish <= 0) {
@@ -1175,12 +1201,12 @@ function drawPads(c) {
   state.towers.forEach((t) => {
     if (t.type) return;
     const sel = state.selected && state.selected.kind === 'tower' && state.selected.ref === t;
-    blob(c, t.x, t.y + 6, 26, 10); paint(c, '#2a4418', '#1a140c', 2);
+    blob(c, t.x, t.y + 8, 30, 11); paint(c, '#2a4418', '#1a140c', 2);
     c.beginPath();
-    c.arc(t.x, t.y, 20, 0, Math.PI * 2);
+    c.arc(t.x, t.y, 24, 0, Math.PI * 2);
     paint(c, sel ? '#e6b423' : '#c9b48a', '#3a2a18', 3);
     c.beginPath();
-    c.arc(t.x, t.y, 11, 0, Math.PI * 2);
+    c.arc(t.x, t.y, 13, 0, Math.PI * 2);
     paint(c, sel ? '#fff1b0' : '#a89068', '#3a2a18', 2);
   });
 }
@@ -1459,8 +1485,8 @@ function hideMenus() {
 
 function placeSheet(el, worldX, worldY) {
   const v = view();
-  const sx = v.ox + worldX * v.s;
-  const sy = v.oy + worldY * v.s;
+  const sx = worldX * v.sx;
+  const sy = worldY * v.sy;
   el.style.left = '8px';
   el.style.top = '8px';
   const w = el.offsetWidth || 280;
@@ -1529,6 +1555,13 @@ function openTower(pad) {
 }
 
 function selectHero(h, fromSeq) {
+  if (state.selected && state.selected.kind === 'hero' && state.selected.ref === h) {
+    state.selected = null;
+    hideMenus();
+    syncHeroUI();
+    SFX.tap();
+    return;
+  }
   state.selected = { kind: 'hero', ref: h };
   state.placing = null;
   hideMenus();
@@ -1618,15 +1651,7 @@ function onWorldTap(p) {
     return;
   }
 
-  if (Math.hypot(p.x - RUNE.x, p.y - RUNE.y) < 28) { tapRune(); return; }
-  if (Math.hypot(p.x - BANNER.x, p.y - BANNER.y) < 40) { tapBanner(); return; }
-  if (Math.hypot(p.x - GUARD.x, p.y - GUARD.y) < 32) { tapGuard(); return; }
-  for (let i = 0; i < state.birds.length; i++) {
-    const b = state.birds[i];
-    if (Math.hypot(p.x - b.x, p.y - b.y) < 22) { SFX.chirp(); toast('The birds have opinions.'); return; }
-  }
-
-  let bestPad = null, pd = 32;
+  let bestPad = null, pd = 52;
   state.towers.forEach((t) => {
     const d = Math.hypot(t.x - p.x, t.y - p.y);
     if (d < pd) { pd = d; bestPad = t; }
@@ -1640,10 +1665,10 @@ function onWorldTap(p) {
     return;
   }
 
-  let bestH = null, hd = 30;
+  let bestH = null, hd = 42;
   state.heroes.forEach((h) => {
     if (h.hp <= 0) return;
-    const d = Math.hypot(h.x - p.x, h.y - p.y);
+    const d = Math.hypot(h.x - p.x, h.y - 8 - p.y);
     if (d < hd) { hd = d; bestH = h; }
   });
   if (bestH) {
@@ -1651,10 +1676,19 @@ function onWorldTap(p) {
     return;
   }
 
+  if (Math.hypot(p.x - RUNE.x, p.y - RUNE.y) < 28) { tapRune(); return; }
+  if (Math.hypot(p.x - BANNER.x, p.y - BANNER.y) < 40) { tapBanner(); return; }
+  if (Math.hypot(p.x - GUARD.x, p.y - GUARD.y) < 32) { tapGuard(); return; }
+  for (let i = 0; i < state.birds.length; i++) {
+    const b = state.birds[i];
+    if (Math.hypot(p.x - b.x, p.y - b.y) < 22) { SFX.chirp(); toast('The birds have opinions.'); return; }
+  }
+
   if (state.selected && state.selected.kind === 'hero') {
     const h = state.selected.ref;
     h.tx = clamp(p.x, 20, W - 20);
     h.ty = clamp(p.y, 40, H - 20);
+    state.moveMark = { x: h.tx, y: h.ty, life: 0.7 };
     SFX.tap();
     return;
   }
@@ -1675,6 +1709,7 @@ function startPlay() {
   $('#scrDefeat').hidden = true;
   $('#scrVictory').hidden = true;
   showHud(true);
+  resize();
   paintMini('julian', $('#hbJulian .mini'));
   paintMini('shadow', $('#hbShadow .mini'));
   paintMini('papa', $('#hbPapa .mini'));
@@ -1756,6 +1791,9 @@ function bindUI() {
 
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => resize()).observe($('#stage'));
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === ' ' && state.mode === 'play') { e.preventDefault(); tryCallWave(); }
