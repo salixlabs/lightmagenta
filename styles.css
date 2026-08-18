@@ -82,6 +82,14 @@ a.tile:hover, a.tile:focus-visible {
   color: var(--muted);
 }
 .status.live { color: #8ee0b0; }
+.build {
+  margin-top: 6px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  opacity: 0.78;
+}
 
 .tile-spartan { background: linear-gradient(180deg, #2a2218 0%, var(--card) 70%); }
 .tile-app { background: linear-gradient(180deg, #1b2030 0%, var(--card) 70%); }
