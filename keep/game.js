@@ -39,9 +39,9 @@ const TOWERS = {
     id: 'treb', name: 'Stonehowl Trebuchet', cost: 200,
     blurb: 'Expensive. Slow. Very rude rocks.',
     tiers: [
-      { name: 'Stonehowl Trebuchet', cost: 0, dmg: 40, range: 232, rate: 2.15, splash: 70, extra: 'A rock with opinions.' },
-      { name: 'Heavier Howl', cost: 160, dmg: 54, range: 248, rate: 1.92, splash: 84, extra: 'Bigger stone. Wider apology.' },
-      { name: "Mountain's Voice", cost: 220, dmg: 66, range: 262, rate: 1.72, splash: 96, extra: 'Impact briefly stuns.' }
+      { name: 'Stonehowl Trebuchet', cost: 0, dmg: 33, range: 232, rate: 2.35, splash: 58, extra: 'A rock with opinions.' },
+      { name: 'Heavier Howl', cost: 160, dmg: 45, range: 248, rate: 2.08, splash: 70, extra: 'Bigger stone. Wider apology.' },
+      { name: "Mountain's Voice", cost: 220, dmg: 55, range: 262, rate: 1.88, splash: 80, extra: 'Impact briefly stuns.' }
     ]
   }
 };
@@ -50,8 +50,13 @@ const KINDS = {
   runner: { name: 'Scramblekin', hp: 24, spd: 64, gold: 8, armor: 0, fly: false, r: 11, leak: 1, color: '#4a8a32' },
   brute: { name: 'Oakplate Brute', hp: 96, spd: 30, gold: 18, armor: 5, fly: false, r: 16, leak: 1, color: '#6a5340' },
   bat: { name: 'Nightwing', hp: 18, spd: 80, gold: 12, armor: 0, fly: true, r: 10, leak: 1, color: '#3a2a48' },
-  boss: { name: 'Marrow the Gatebreaker', hp: 1480, spd: 21, gold: 90, armor: 7, fly: false, r: 30, leak: 5, color: '#5a2028' }
+  boss: { name: 'Marrow the Gatebreaker', hp: 1480, spd: 21, gold: 90, armor: 7, fly: false, r: 30, leak: 1, color: '#5a2028' }
 };
+
+/* Veteran: +22% HP only. Night Gate path is ~2641px; Marrow walks it in ~108s.
+   A kit of heroes + barracks + stacked reinforcements + 2–3 towers still melts him
+   with a wide time margin. No extra speed or count — those would wall 5-pad Night Gate. */
+const VETERAN_HP = 1.22;
 
 const W1 = [
   { title: 'Stirring in the Wood', packs: [{ k: 'runner', n: 8, gap: 0.70 }] },
@@ -181,6 +186,10 @@ function nearestPath(p) {
   }
   return best;
 }
+function distToPath(p) {
+  const q = pathAt(nearestPath(p), false);
+  return Math.hypot(q.x - p.x, q.y - p.y);
+}
 
 let audio = null, soundOn = true;
 function ensureAudio() {
@@ -271,7 +280,9 @@ const state = {
   reinforceCd: 0,
   callCd: 0,
   moveMark: null,
-  level: 0
+  level: 0,
+  difficulty: 'standard',
+  bossLeak: false
 };
 
 function toast(msg, t) {
@@ -280,11 +291,19 @@ function toast(msg, t) {
   el.hidden = false;
   state.toastT = t || 2.2;
 }
+function isVeteran() { return state.difficulty === 'veteran'; }
+function modeLabel() { return isVeteran() ? 'Veteran' : 'Standard'; }
 function hudGold() { $('#statGold strong').textContent = String(state.gold); }
 function hudLives() { $('#statLives strong').textContent = String(state.lives); }
 function hudWave() {
   const n = currentWaves().length;
   $('#statWave strong').textContent = state.wave + '/' + n;
+}
+function hudMode() {
+  const el = $('#statMode strong');
+  if (el) el.textContent = modeLabel();
+  const wrap = $('#statMode');
+  if (wrap) wrap.classList.toggle('vet', isVeteran());
 }
 
 function addGold(n) {
@@ -371,12 +390,13 @@ function resetRun(level) {
   state.reinforceCd = 0;
   state.callCd = 0;
   state.moveMark = null;
+  state.bossLeak = false;
   state.birds = [
     { x: 220, y: 90, vx: 18, s: 1, t: 0 },
     { x: 640, y: 70, vx: -14, s: 0.85, t: 1.2 },
     { x: 900, y: 110, vx: 12, s: 1.1, t: 2 }
   ];
-  hudGold(); hudLives(); hudWave();
+  hudGold(); hudLives(); hudWave(); hudMode();
   $('#waveBtnLabel').textContent = 'Call Wave 1';
   $('#waveBtnHint').textContent = 'Begin the siege';
   $('#btnWave').classList.add('ready');
@@ -431,10 +451,11 @@ function kill(e) {
 function spawnEnemy(kind, waveIndex) {
   const k = KINDS[kind];
   const scale = 1 + waveIndex * 0.085 + state.level * 0.16;
+  const hpMul = isVeteran() ? VETERAN_HP : 1;
   const p = pathAt(0, k.fly);
   state.enemies.push({
     kind, name: k.name, x: p.x, y: p.y, d: 0, ang: 0,
-    hp: k.hp * scale, mhp: k.hp * scale, spd: k.spd * (1 + state.level * 0.08), gold: k.gold, armor: k.armor,
+    hp: k.hp * scale * hpMul, mhp: k.hp * scale * hpMul, spd: k.spd * (1 + state.level * 0.08), gold: k.gold, armor: k.armor,
     fly: k.fly, r: k.r, leak: k.leak, color: k.color,
     stun: 0, slow: 0, burn: 0, burnDps: 0, flash: 0, dead: false, atkT: 0, bob: Math.random() * 6
   });
@@ -554,14 +575,15 @@ function dropReinforce(p) {
   const b = pathAt(clamp(d0 + 22, 0, PATH.total), false);
   [a, b].forEach((q) => {
     state.soldiers.push({
-      home: null, temp: true, life: 14,
+      home: null, temp: true, life: Infinity,
       x: q.x, y: q.y, hp: 46, mhp: 46, dmg: 7, rate: 0.6, atkT: 0, respawn: 0, facing: 1
     });
   });
   state.placing = null;
   state.reinforceCd = 20;
-  toast('Reinforcements on the road!');
+  toast('Reinforcements hold the road!');
   SFX.horn();
+  syncHeroUI();
 }
 
 function useAbility(h) {
@@ -740,7 +762,7 @@ function soldierRally(s) {
 
 function updateSoldiers(dt) {
   state.soldiers.forEach((s) => {
-    if (s.temp) s.life -= dt;
+    if (s.temp && Number.isFinite(s.life)) s.life -= dt;
     if (s.hp <= 0 && !s.temp) {
       s.respawn += dt;
       const wait = (s.home && s.home.tier >= 2) ? 3.1 : 4.2;
@@ -751,7 +773,7 @@ function updateSoldiers(dt) {
       }
     }
   });
-  state.soldiers = state.soldiers.filter((s) => !(s.temp && (s.life <= 0 || s.hp <= 0)));
+  state.soldiers = state.soldiers.filter((s) => !(s.temp && (s.hp <= 0 || (Number.isFinite(s.life) && s.life <= 0))));
   state.soldiers.forEach((s) => {
     if (s.hp <= 0) return;
     const e = nearestEnemy(s, 42, (en) => !en.fly);
@@ -831,11 +853,21 @@ function updateEnemies(dt) {
     e.y = p.y + Math.sin(e.bob) * (e.fly ? 4 : 1);
     e.ang = p.ang;
     if (e.d >= PATH.total - 4) {
-      state.lives = Math.max(0, state.lives - e.leak);
+      if (e.kind === 'boss') {
+        state.lives = 0;
+        state.bossLeak = true;
+        hudLives();
+        SFX.leak();
+        state.shake = 12;
+        toast('Marrow the Gatebreaker breaches the keep!');
+        state.enemies.splice(i, 1);
+        continue;
+      }
+      state.lives = Math.max(0, state.lives - (e.leak || 1));
       hudLives();
       SFX.leak();
       state.shake = 8;
-      toast(e.kind === 'boss' ? 'The Gatebreaker reaches the gate!' : 'A foe slips into the keep!');
+      toast('A foe slips into the keep!');
       state.enemies.splice(i, 1);
     }
   }
@@ -962,7 +994,7 @@ function startNextSiege() {
   resetRun(state.level + 1);
   state.mode = 'play';
   showHud(true);
-  toast(currentLevel().name + '. Hold the gate.');
+  toast(currentLevel().name + '. ' + modeLabel() + ' siege. Hold the gate.');
 }
 
 function showHud(on) {
@@ -976,6 +1008,9 @@ function defeat() {
   state.mode = 'defeat';
   SFX.lose();
   hideMenus();
+  $('#defeatLine').textContent = state.bossLeak
+    ? 'Marrow the Gatebreaker walks through the gate. The keep is his.'
+    : 'Julian plants his banner in the rubble. Tomorrow, they try again.';
   $('#scrDefeat').hidden = false;
   showHud(false);
 }
@@ -1027,6 +1062,87 @@ function fillRad(c, x, y, r0, r1, a, b) {
 function contactShadow(c, x, y, rx, ry) {
   blob(c, x, y, rx, ry);
   paint(c, 'rgba(18, 10, 6, 0.38)', 'rgba(18, 10, 6, 0.38)', 0);
+}
+function glint(c, x, y, rx, ry, a) {
+  c.save();
+  c.globalAlpha = a == null ? 0.3 : a;
+  blob(c, x, y, rx, ry == null ? rx * 0.65 : ry);
+  paint(c, '#fff6d8', '#fff6d8', 0);
+  c.restore();
+}
+function rivet(c, x, y) {
+  blob(c, x, y, 1.05, 1.05);
+  paint(c, fillRad(c, x - 0.35, y - 0.4, 0.2, 1.2, '#e8e0d0', '#4a4034'), '#1a140c', 0.55);
+}
+function clothFold(c, x0, y0, x1, y1, col) {
+  c.strokeStyle = col || 'rgba(20,12,8,0.28)';
+  c.lineWidth = 1;
+  c.lineCap = 'round';
+  c.beginPath();
+  c.moveTo(x0, y0);
+  c.quadraticCurveTo((x0 + x1) * 0.5 + 1.5, (y0 + y1) * 0.5, x1, y1);
+  c.stroke();
+}
+function drawFace(c, x, y, rx, ry, o) {
+  o = o || {};
+  const skin = o.skin || '#e0b890';
+  const deep = o.deep || '#8a5a3c';
+  const edge = o.edge || '#2a1c12';
+  blob(c, x, y, rx, ry);
+  paint(c, fillRad(c, x - rx * 0.38, y - ry * 0.42, 0.5, rx * 1.25, skin, deep), edge, 1.15);
+  if (!o.noEar) {
+    blob(c, x - rx * 0.95, y + ry * 0.04, rx * 0.3, ry * 0.34);
+    paint(c, fillRad(c, x - rx, y, 0.2, rx * 0.38, skin, deep), edge, 0.8);
+  }
+  const ex = x + rx * 0.16, ey = y - ry * 0.06;
+  c.fillStyle = 'rgba(40,22,14,0.2)';
+  c.beginPath(); c.ellipse(ex - 2.15, ey, rx * 0.24, ry * 0.15, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(ex + 2.2, ey, rx * 0.22, ry * 0.14, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = o.white || '#f2e6d2';
+  c.beginPath(); c.ellipse(ex - 2.1, ey, 1.4, 1.08, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(ex + 2.2, ey, 1.28, 1.02, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = o.eye || '#3a2a18';
+  c.beginPath(); c.arc(ex - 1.72, ey + 0.05, 0.74, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(ex + 2.5, ey + 0.04, 0.68, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(255,255,240,0.6)';
+  c.beginPath(); c.arc(ex - 1.95, ey - 0.28, 0.28, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(ex + 2.28, ey - 0.24, 0.24, 0, Math.PI * 2); c.fill();
+  if (o.lid) {
+    c.strokeStyle = o.lid;
+    c.lineWidth = 0.9;
+    c.beginPath();
+    c.moveTo(ex - 3.3, ey - 0.85); c.quadraticCurveTo(ex - 2.1, ey - 1.5, ex - 0.8, ey - 0.7);
+    c.moveTo(ex + 0.9, ey - 0.75); c.quadraticCurveTo(ex + 2.2, ey - 1.4, ex + 3.4, ey - 0.55);
+    c.stroke();
+  }
+  c.strokeStyle = o.brow || 'rgba(50,28,16,0.52)';
+  c.lineWidth = 1.2;
+  c.lineCap = 'round';
+  c.beginPath();
+  c.moveTo(x - rx * 0.44, y - ry * 0.24);
+  c.quadraticCurveTo(x + rx * 0.04, y - ry * 0.46, x + rx * 0.5, y - ry * 0.16);
+  c.stroke();
+  c.strokeStyle = o.nose || 'rgba(90,50,32,0.42)';
+  c.lineWidth = 1;
+  c.beginPath();
+  c.moveTo(x + rx * 0.1, y - ry * 0.04);
+  c.lineTo(x + rx * 0.26, y + ry * 0.22);
+  c.quadraticCurveTo(x + rx * 0.04, y + ry * 0.3, x - rx * 0.04, y + ry * 0.18);
+  c.stroke();
+  c.strokeStyle = o.lip || 'rgba(92,36,32,0.48)';
+  c.lineWidth = 1.05;
+  c.beginPath();
+  c.moveTo(x - rx * 0.14, y + ry * 0.44);
+  c.quadraticCurveTo(x + rx * 0.1, y + ry * 0.54, x + rx * 0.34, y + ry * 0.4);
+  c.stroke();
+  if (o.beard) {
+    c.beginPath();
+    c.moveTo(x - rx * 0.58, y + ry * 0.22);
+    c.quadraticCurveTo(x - rx * 0.15, y + ry * 1.22, x + rx * 0.08, y + ry * 1.05);
+    c.quadraticCurveTo(x + rx * 0.62, y + ry * 0.85, x + rx * 0.55, y + ry * 0.2);
+    c.quadraticCurveTo(x, y + ry * 0.5, x - rx * 0.58, y + ry * 0.22);
+    paint(c, fillLin(c, x, y + ry * 0.15, x, y + ry * 1.15, o.beard, o.beardD || '#2a1810'), '#1a1008', 0.9);
+  }
 }
 
 function view() {
@@ -1133,7 +1249,7 @@ function draw() {
     c.fillStyle = 'rgba(244,230,196,0.72)';
     c.font = '700 13px Palatino, serif';
     c.textAlign = 'left';
-    c.fillText(currentLevel().name, 16, 26);
+    c.fillText(currentLevel().name + (isVeteran() ? ' · Veteran' : ''), 16, 26);
   }
 }
 
@@ -1536,16 +1652,26 @@ function drawSoldier(c, s) {
   c.translate(s.x, s.y);
   c.scale(s.facing || 1, 1);
   contactShadow(c, 0, 12, 8, 3);
-  const cloth = s.temp ? '#5a6a78' : '#7a3024';
+  const cloth = s.temp ? '#6a7a88' : '#8a3428';
   const clothD = s.temp ? '#3a4a58' : '#4a1814';
-  rr(c, -4, 4, 3.5, 8, 1); paint(c, fillLin(c, -4, 4, 0, 12, '#4a3428', '#2a1c14'), '#1a1008', 1);
-  rr(c, 1, 4, 3.5, 8, 1); paint(c, fillLin(c, 1, 4, 5, 12, '#4a3428', '#2a1c14'), '#1a1008', 1);
-  rr(c, -7, -8, 14, 15, 3); paint(c, fillLin(c, -7, -8, 7, 7, cloth, clothD), '#1a1008', 1.5);
-  c.fillStyle = fillLin(c, 5, -12, 9, 2, '#d0c8b0', '#6a6458');
-  c.fillRect(6, -10, 2.5, 12);
-  blob(c, 0, -14, 5.5, 5.5); paint(c, fillRad(c, -1.5, -16, 1, 6, '#e0c4a0', '#8a6a48'), '#2a1c10', 1.5);
-  c.fillStyle = '#3a2418';
-  c.fillRect(-5, -17, 10, 3);
+  rr(c, -5, 5, 4, 9, 1.2); paint(c, fillLin(c, -5, 5, -1, 14, '#5a4030', '#2a1c12'), '#1a1008', 1);
+  rr(c, 1.2, 5, 4, 9, 1.2); paint(c, fillLin(c, 1, 5, 5, 14, '#4a3424', '#241610'), '#1a1008', 1);
+  blob(c, -3, 14, 2.4, 1.3); paint(c, '#3a2a1c', '#1a1008', 0.7);
+  blob(c, 3.2, 14, 2.4, 1.3); paint(c, '#3a2a1c', '#1a1008', 0.7);
+  rr(c, -8, -9, 16, 16, 3); paint(c, fillLin(c, -8, -9, 6, 8, cloth, clothD), '#1a1008', 1.4);
+  clothFold(c, -5, -4, -3, 5, 'rgba(12,8,6,0.28)');
+  rr(c, -6, -6, 12, 6, 2); paint(c, fillLin(c, -6, -6, 4, 0, s.temp ? '#8a96a0' : '#c9a040', s.temp ? '#4a545c' : '#6a4814'), '#1a1008', 1);
+  c.fillStyle = fillLin(c, 6, -12, 10, 4, '#d8d0bc', '#6a6458');
+  c.fillRect(6.5, -11, 2.4, 13);
+  c.strokeStyle = '#2a241c'; c.lineWidth = 0.8; c.strokeRect(6.5, -11, 2.4, 13);
+  blob(c, 7.7, -12.2, 1.6, 1.6); paint(c, '#8a8478', '#2a241c', 0.7);
+  drawFace(c, 0.4, -15.2, 5.1, 5.4, {
+    skin: '#e0b890', deep: '#8a5a3c', eye: '#3a2a1c', lid: 'rgba(70,40,24,0.4)'
+  });
+  c.beginPath();
+  c.moveTo(-5.2, -19); c.quadraticCurveTo(0, -23, 5.4, -18.4); c.lineTo(4.6, -16.4); c.quadraticCurveTo(0, -19, -4.4, -16.8);
+  c.closePath();
+  paint(c, fillLin(c, 0, -23, 0, -16, s.temp ? '#4a5460' : '#3a2418', '#1a1410'), '#120c08', 1);
   c.restore();
   if (s.hp < s.mhp) {
     c.fillStyle = '#1a140c';
@@ -1559,62 +1685,12 @@ function drawEnemy(c, e) {
   c.save();
   c.translate(e.x, e.y);
   if (e.flash > 0) c.globalAlpha = 0.55;
-  const squash = e.kind === 'boss' ? 1.45 : 1;
   c.scale(Math.cos(e.ang) >= 0 ? 1 : -1, 1);
   contactShadow(c, 0, e.r + 3, e.r * 0.85, 3.5);
-  if (e.kind === 'runner') {
-    rr(c, -5, 4, 3, 8, 1); paint(c, '#3a5a28', '#1a140c', 1);
-    rr(c, 2, 4, 3, 8, 1); paint(c, '#3a5a28', '#1a140c', 1);
-    blob(c, 0, 1, 9, 8); paint(c, fillLin(c, -8, -6, 8, 10, '#5a9a3c', '#2a581c'), '#1a2410', 2);
-    rr(c, -7, -4, 12, 8, 2); paint(c, fillLin(c, -7, -4, 5, 4, '#4a6a30', '#2a3a18'), '#1a140c', 1);
-    blob(c, 7, -8, 6, 5.5); paint(c, fillRad(c, 5, -10, 1, 6, '#6aaa44', '#3a6a28'), '#1a2410', 1.5);
-    c.beginPath(); c.moveTo(4, -13); c.lineTo(2, -18); c.lineTo(7, -13); c.closePath();
-    paint(c, '#3a6a28', '#1a140c', 1);
-    c.fillStyle = '#1a140c';
-    c.beginPath(); c.arc(9, -9, 1.4, 0, 7); c.fill();
-    c.fillStyle = '#d0c8b0';
-    c.beginPath(); c.moveTo(12, -7); c.lineTo(20, -3); c.lineTo(12, -2); c.closePath(); c.fill();
-  } else if (e.kind === 'brute') {
-    rr(c, -8, 8, 5, 10, 1); paint(c, '#4a3a2c', '#1a140c', 1);
-    rr(c, 3, 8, 5, 10, 1); paint(c, '#4a3a2c', '#1a140c', 1);
-    blob(c, 0, 3, 14, 13); paint(c, fillLin(c, -12, -8, 12, 16, '#7a6048', '#3a2c20'), '#1a140c', 2);
-    rr(c, -13, -6, 26, 13, 2); paint(c, fillLin(c, -13, -6, 13, 7, '#9a9080', '#5a5448'), '#2a241c', 1.5);
-    blob(c, 6, -12, 8, 7); paint(c, fillRad(c, 4, -14, 1, 8, '#9a7a5c', '#5a4030'), '#1a140c', 1.5);
-    c.fillStyle = '#1a140c';
-    c.fillRect(-2, -16, 8, 3);
-    c.fillStyle = fillLin(c, 14, -10, 20, 12, '#6a6054', '#2a241c');
-    c.fillRect(14, -8, 5, 20);
-    blob(c, 16, -12, 5, 5); paint(c, '#5a5448', '#1a140c', 1);
-  } else if (e.kind === 'bat') {
-    const flap = Math.sin(e.bob) * 5;
-    c.beginPath();
-    c.moveTo(0, 0);
-    c.quadraticCurveTo(-16, -10 - flap, -24, 2);
-    c.quadraticCurveTo(-10, 4, 0, 3);
-    c.quadraticCurveTo(10, 4, 24, 2);
-    c.quadraticCurveTo(16, -10 - flap, 0, 0);
-    paint(c, fillLin(c, 0, -12, 0, 8, '#4a3858', '#1e1428'), '#140e18', 1.5);
-    c.strokeStyle = 'rgba(20,10,24,0.45)';
-    c.lineWidth = 1;
-    c.beginPath(); c.moveTo(0, 0); c.lineTo(-20, -2 - flap * 0.4); c.moveTo(0, 0); c.lineTo(20, -2 - flap * 0.4); c.stroke();
-    blob(c, 0, 0, 5.5, 5); paint(c, fillRad(c, -1, -2, 1, 6, '#3a2a40', '#1a1020'), '#100c14', 1.5);
-    c.fillStyle = '#e8c040';
-    c.beginPath(); c.arc(2, -1, 1.1, 0, 7); c.fill();
-  } else {
-    rr(c, -10, 12, 7, 12, 2); paint(c, '#3a1c20', '#1a0c0c', 1);
-    rr(c, 4, 12, 7, 12, 2); paint(c, '#3a1c20', '#1a0c0c', 1);
-    blob(c, 0, 5, 20 * squash, 17); paint(c, fillLin(c, -18, -10, 16, 22, '#7a3038', '#3a1418'), '#1a0c0c', 2.5);
-    rr(c, -16, -4, 32, 14, 3); paint(c, fillLin(c, -16, -4, 16, 10, '#6a6458', '#2e2824'), '#1a140c', 1.5);
-    blob(c, 8, -16, 12, 10); paint(c, fillRad(c, 5, -20, 2, 12, '#8a3a40', '#4a181c'), '#1a0c0c', 2);
-    c.beginPath(); c.moveTo(-2, -24); c.lineTo(-8, -34); c.lineTo(2, -24); c.closePath();
-    paint(c, '#4a2a20', '#1a0c0c', 1.5);
-    c.beginPath(); c.moveTo(20, -18); c.lineTo(36, -28); c.lineTo(24, -10); c.closePath();
-    paint(c, fillLin(c, 20, -28, 36, -10, '#d4c8b0', '#7a7060'), '#1a140c', 1.5);
-    c.fillStyle = '#e6b423';
-    c.font = '700 9px Palatino, serif';
-    c.textAlign = 'center';
-    c.fillText('M', 0, 8);
-  }
+  if (e.kind === 'runner') drawRunner(c);
+  else if (e.kind === 'brute') drawBrute(c);
+  else if (e.kind === 'bat') drawNightwing(c, e);
+  else drawMarrow(c);
   c.restore();
   if (e.hp < e.mhp || e.kind === 'boss') {
     const w = e.kind === 'boss' ? 46 : 22;
@@ -1629,6 +1705,137 @@ function drawEnemy(c, e) {
     c.textAlign = 'center';
     c.fillText('Marrow the Gatebreaker', e.x, e.y - e.r - 22);
   }
+}
+
+function drawRunner(c) {
+  rr(c, -5.5, 5, 3.6, 9, 1.1); paint(c, fillLin(c, -5.5, 5, -2, 14, '#4a6a30', '#243818'), '#142010', 1);
+  rr(c, 2, 4.5, 3.4, 9.5, 1.1); paint(c, fillLin(c, 2, 4, 5, 14, '#3a5a28', '#1c2c14'), '#142010', 1);
+  blob(c, -3.6, 14.4, 2.2, 1.2); paint(c, '#2a3a18', '#101808', 0.7);
+  blob(c, 3.8, 14.2, 2.2, 1.2); paint(c, '#2a3a18', '#101808', 0.7);
+  blob(c, 0, 1.2, 8.6, 8.2); paint(c, fillLin(c, -7, -6, 7, 10, '#5a8a3c', '#2a4a1c'), '#1a2410', 1.6);
+  clothFold(c, -4, -2, -2, 6, 'rgba(16,24,10,0.32)');
+  rr(c, -7, -3, 11, 7, 2); paint(c, fillLin(c, -7, -3, 3, 4, '#6a4a28', '#3a2814'), '#1a140c', 1);
+  c.beginPath(); c.moveTo(7, -4); c.lineTo(16, 1); c.lineTo(15, 3.4); c.lineTo(7.2, -1.2); c.closePath();
+  paint(c, fillLin(c, 7, -4, 16, 3, '#d8d0c0', '#7a7060'), '#2a2418', 1);
+  c.strokeStyle = '#4a4034'; c.lineWidth = 0.7;
+  c.beginPath(); c.moveTo(8.2, -2.4); c.lineTo(14.4, 1.4); c.stroke();
+  drawFace(c, 6.2, -8.4, 5.4, 5.2, {
+    skin: '#7aaa4c', deep: '#3a5a24', eye: '#1a2410', white: '#e8f0c8',
+    brow: 'rgba(30,48,16,0.55)', lip: 'rgba(40,24,12,0.5)', lid: 'rgba(30,48,16,0.4)'
+  });
+  c.beginPath(); c.moveTo(3.2, -12.6); c.lineTo(1.4, -19); c.lineTo(5.6, -13.2); c.closePath();
+  paint(c, fillLin(c, 3, -19, 5, -12, '#4a6a30', '#243818'), '#142010', 1);
+  c.beginPath(); c.moveTo(8.8, -12.8); c.lineTo(8.2, -18.6); c.lineTo(11.2, -13); c.closePath();
+  paint(c, fillLin(c, 9, -19, 10, -12, '#4a6a30', '#243818'), '#142010', 1);
+  glint(c, 3.4, -10.2, 1.4, 1, 0.18);
+}
+
+function drawBrute(c) {
+  rr(c, -9, 9, 5.5, 11, 1.4); paint(c, fillLin(c, -9, 9, -4, 20, '#5a4030', '#2a1c14'), '#1a1008', 1);
+  rr(c, 3, 9, 5.5, 11, 1.4); paint(c, fillLin(c, 3, 9, 8, 20, '#4a3424', '#221610'), '#1a1008', 1);
+  blob(c, -6, 20.4, 3.2, 1.6); paint(c, '#3a2a1c', '#140c08', 0.7);
+  blob(c, 6, 20.4, 3.2, 1.6); paint(c, '#3a2a1c', '#140c08', 0.7);
+  blob(c, 0, 3, 14.5, 13.5); paint(c, fillLin(c, -12, -8, 12, 16, '#8a6a4c', '#3a2c1c'), '#1a140c', 1.8);
+  clothFold(c, -6, -1, -3, 10, 'rgba(24,14,8,0.28)');
+  rr(c, -14, -7, 28, 14, 3); paint(c, fillLin(c, -14, -7, 10, 8, '#b0a898', '#5a5044'), '#2a241c', 1.5);
+  glint(c, -6, -4, 5, 2.2, 0.2);
+  rivet(c, -9, -2); rivet(c, 0, -3); rivet(c, 8, -1);
+  c.beginPath();
+  c.moveTo(-12, -6); c.lineTo(-16, -2); c.lineTo(-12, 4); c.lineTo(-8, 0);
+  c.closePath();
+  paint(c, fillLin(c, -16, -6, -8, 4, '#8a7a64', '#3a3428'), '#1a140c', 1);
+  c.save();
+  c.translate(15, 2);
+  c.rotate(0.18);
+  c.fillStyle = fillLin(c, -2, -16, 2, 14, '#6a4a28', '#2a1c10');
+  c.fillRect(-2.1, -14, 4.2, 28);
+  c.strokeStyle = '#1a1008'; c.lineWidth = 1; c.strokeRect(-2.1, -14, 4.2, 28);
+  c.strokeStyle = 'rgba(30,16,8,0.3)'; c.lineWidth = 0.7;
+  c.beginPath(); c.moveTo(-0.6, -12); c.lineTo(-0.2, 12); c.stroke();
+  blob(c, 0, -17, 7.2, 6.2); paint(c, fillRad(c, -2, -19, 1, 7.5, '#8a8478', '#3a342c'), '#1a140c', 1.3);
+  glint(c, -2, -19, 2.2, 1.4, 0.28);
+  c.restore();
+  drawFace(c, 5.5, -13.2, 7.2, 6.8, {
+    skin: '#c89868', deep: '#6a4030', eye: '#2a1c10', brow: 'rgba(50,28,16,0.55)',
+    beard: '#4a3424', beardD: '#1e140c', lid: 'rgba(70,40,24,0.4)'
+  });
+  rr(c, -2, -20.5, 12, 5, 1.4); paint(c, fillLin(c, -2, -20, 8, -16, '#6a6458', '#2a241c'), '#1a140c', 1.1);
+  rivet(c, 1, -18); rivet(c, 7, -18);
+}
+
+function drawNightwing(c, e) {
+  const flap = Math.sin(e.bob) * 5.5;
+  c.beginPath();
+  c.moveTo(-2, 1);
+  c.quadraticCurveTo(-18, -12 - flap, -27, 3);
+  c.quadraticCurveTo(-14, 7, -2, 4);
+  c.closePath();
+  paint(c, fillLin(c, -8, -14, -8, 8, '#5a4468', '#1a1020'), '#120c18', 1.3);
+  c.beginPath();
+  c.moveTo(2, 1);
+  c.quadraticCurveTo(18, -12 - flap, 27, 3);
+  c.quadraticCurveTo(14, 7, 2, 4);
+  c.closePath();
+  paint(c, fillLin(c, 8, -14, 8, 8, '#4a3858', '#16101c'), '#120c18', 1.3);
+  c.strokeStyle = 'rgba(20,10,24,0.5)';
+  c.lineWidth = 1;
+  c.beginPath();
+  c.moveTo(0, 1); c.lineTo(-22, -3 - flap * 0.45);
+  c.moveTo(0, 1); c.lineTo(22, -3 - flap * 0.45);
+  c.moveTo(-6, 2); c.lineTo(-18, 2 - flap * 0.2);
+  c.moveTo(6, 2); c.lineTo(18, 2 - flap * 0.2);
+  c.stroke();
+  blob(c, 0, 1.2, 6.4, 5.6); paint(c, fillRad(c, -1.5, -1, 0.8, 7, '#4a3854', '#1a1020'), '#100c14', 1.4);
+  c.beginPath(); c.moveTo(-2.2, -4.2); c.lineTo(-4.6, -11); c.lineTo(-0.2, -5); c.closePath();
+  paint(c, '#2a1c30', '#100c14', 0.8);
+  c.beginPath(); c.moveTo(2.4, -4.2); c.lineTo(5.2, -11.2); c.lineTo(0.8, -5); c.closePath();
+  paint(c, '#2a1c30', '#100c14', 0.8);
+  drawFace(c, 1.2, 0.4, 4.6, 4.2, {
+    skin: '#6a5478', deep: '#2a1c34', eye: '#e8b428', white: '#3a2a18',
+    brow: 'rgba(20,10,24,0.55)', lip: 'rgba(80,30,40,0.5)', noEar: true
+  });
+  c.fillStyle = '#f0d8c0';
+  c.beginPath(); c.moveTo(2.6, 3.4); c.lineTo(4.8, 5.8); c.lineTo(3.2, 3.8); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(0.4, 3.6); c.lineTo(-0.6, 5.6); c.lineTo(1.2, 3.8); c.closePath(); c.fill();
+}
+
+function drawMarrow(c) {
+  rr(c, -12, 14, 8, 14, 2); paint(c, fillLin(c, -12, 14, -5, 28, '#4a2024', '#1a0c0c'), '#120808', 1.2);
+  rr(c, 4, 14, 8, 14, 2); paint(c, fillLin(c, 4, 14, 11, 28, '#3a181c', '#140808'), '#120808', 1.2);
+  blob(c, -8, 28.2, 4.4, 2); paint(c, '#2a1414', '#100808', 0.8);
+  blob(c, 8, 28.2, 4.4, 2); paint(c, '#2a1414', '#100808', 0.8);
+  c.beginPath();
+  c.moveTo(-8, -6); c.quadraticCurveTo(-28, 8, -10, 26); c.lineTo(12, 22); c.quadraticCurveTo(8, 4, 4, -4);
+  c.closePath();
+  paint(c, fillLin(c, -16, -8, 8, 24, '#4a1c28', '#1a0a10'), '#120808', 1.6);
+  blob(c, 0, 4, 20, 17.5); paint(c, fillLin(c, -16, -10, 14, 20, '#8a343c', '#3a1418'), '#1a0c0c', 2.2);
+  rr(c, -18, -6, 36, 16, 3); paint(c, fillLin(c, -18, -6, 14, 10, '#8a8478', '#3a342c'), '#1a140c', 1.6);
+  glint(c, -8, -2, 7, 3, 0.22);
+  rivet(c, -10, 0); rivet(c, 2, -2); rivet(c, 12, 1);
+  c.fillStyle = '#e6b423';
+  c.font = '700 10px Palatino, serif';
+  c.textAlign = 'center';
+  c.fillText('M', 0, 8);
+  c.save();
+  c.translate(18, -2);
+  c.rotate(-0.55);
+  c.fillStyle = fillLin(c, 0, -3, 0, 3, '#d8d0c0', '#6a6458');
+  c.fillRect(0, -2.4, 30, 4.8);
+  c.strokeStyle = '#1a140c'; c.lineWidth = 1.2; c.strokeRect(0, -2.4, 30, 4.8);
+  c.beginPath(); c.moveTo(28, -7); c.lineTo(42, 0); c.lineTo(28, 7); c.closePath();
+  paint(c, fillLin(c, 28, -7, 42, 7, '#f0e8d8', '#7a7064'), '#1a140c', 1.3);
+  glint(c, 34, -2, 3, 1.4, 0.28);
+  c.restore();
+  drawFace(c, 7, -17, 9.2, 8.4, {
+    skin: '#c8a090', deep: '#6a3038', eye: '#e8c040', white: '#4a2024',
+    brow: 'rgba(40,16,16,0.6)', lip: 'rgba(80,24,24,0.5)', lid: 'rgba(40,16,16,0.45)'
+  });
+  rr(c, -4, -28, 18, 10, 2.4); paint(c, fillLin(c, -4, -28, 12, -18, '#5a5450', '#2a201c'), '#1a0c0c', 1.4);
+  c.beginPath(); c.moveTo(-2, -26); c.lineTo(-10, -38); c.lineTo(3, -26); c.closePath();
+  paint(c, fillLin(c, -6, -38, 0, -26, '#4a2a22', '#1a0c0c'), '#120808', 1.2);
+  c.beginPath(); c.moveTo(12, -26); c.lineTo(18, -36); c.lineTo(16, -24); c.closePath();
+  paint(c, fillLin(c, 14, -36, 16, -24, '#4a2a22', '#1a0c0c'), '#120808', 1.2);
+  glint(c, 2, -25, 3, 1.4, 0.2);
 }
 
 function drawHeroWorld(c, h) {
@@ -1667,115 +1874,161 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
   if (down) c.rotate(0.4);
   const arm = swing ? -1.05 : -0.22;
   contactShadow(c, 1, 18, id === 'papa' ? 13 : 10, 4);
-  if (id === 'julian') {
-    c.beginPath(); c.moveTo(-4, -6); c.quadraticCurveTo(-24, 6, -14, 22); c.lineTo(8, 16); c.quadraticCurveTo(4, 4, 2, -4); c.closePath();
-    paint(c, fillLin(c, -20, -8, 4, 22, '#2a4a8a', '#0e1a38'), '#0a1020', 2);
-    rr(c, -5, 6, 4, 11, 1); paint(c, fillLin(c, -5, 6, -1, 16, '#1a1c28', '#0a0c14'), '#080a10', 1);
-    rr(c, 2, 6, 4, 11, 1); paint(c, fillLin(c, 2, 6, 6, 16, '#1a1c28', '#0a0c14'), '#080a10', 1);
-    rr(c, -10, -10, 20, 20, 3); paint(c, fillLin(c, -10, -10, 10, 10, '#2a2e3a', '#10141c'), '#0a1020', 2);
-    c.beginPath(); c.moveTo(-8, -8); c.lineTo(8, -8); c.lineTo(6, 2); c.lineTo(-6, 2); c.closePath();
-    paint(c, fillLin(c, 0, -8, 0, 4, '#3a4a68', '#1a2438'), '#0a1020', 1);
-    c.save();
-    c.translate(-13, 2);
-    c.beginPath(); c.moveTo(-10, -8); c.lineTo(8, -4); c.lineTo(8, 12); c.lineTo(-8, 10); c.closePath();
-    paint(c, fillLin(c, -10, -8, 8, 12, '#3a5aaa', '#1a2a58'), '#0a1020', 1.5);
-    c.strokeStyle = '#c9d8ff'; c.lineWidth = 1;
-    c.stroke();
-    c.fillStyle = '#c9d8ff';
-    c.font = '700 7px Palatino, serif';
-    c.textAlign = 'center';
-    c.fillText('777', -1, 4);
-    c.restore();
-    blob(c, 1, -20, 8, 7.5); paint(c, fillRad(c, -1, -22, 1, 8, '#e0c4a0', '#8a6a48'), '#0a1020', 1.5);
-    rr(c, -8, -30, 16, 12, 3); paint(c, fillLin(c, -8, -30, 8, -18, '#2a303c', '#0c1018'), '#0a1020', 1.5);
-    c.beginPath(); c.moveTo(2, -30); c.quadraticCurveTo(16, -44, 6, -28); paint(c, fillLin(c, 2, -44, 10, -28, '#4a78c8', '#1a3a78'), '#0a1020', 1.5);
-    c.save();
-    c.translate(11, 0);
-    c.rotate(arm);
-    c.fillStyle = fillLin(c, 0, -3, 0, 3, '#d8e0ec', '#7a8494');
-    c.fillRect(0, -2, 28, 4);
-    c.strokeStyle = '#0a1020'; c.lineWidth = 1.5; c.strokeRect(0, -2, 28, 4);
-    c.fillStyle = '#9aa4b4';
-    c.fillRect(8, -1, 14, 2);
-    c.beginPath(); c.moveTo(28, -6); c.lineTo(38, 0); c.lineTo(28, 6); c.closePath();
-    paint(c, fillLin(c, 28, -6, 38, 6, '#eef4fc', '#8a96a8'), '#0a1020', 1.5);
-    c.restore();
-  } else if (id === 'shadow') {
-    c.beginPath();
-    c.moveTo(-8, -10);
-    c.quadraticCurveTo(-24, 8, -8, 24);
-    c.lineTo(12, 18);
-    c.quadraticCurveTo(18, 2, 8, -12);
-    c.quadraticCurveTo(2, -22, -6, -16);
-    c.closePath();
-    paint(c, fillLin(c, -16, -16, 8, 22, '#2a2238', '#0c0a14'), '#0a0810', 2);
-    c.beginPath();
-    c.moveTo(-6, 0);
-    c.quadraticCurveTo(-14, 10, -4, 20);
-    c.strokeStyle = 'rgba(80, 50, 120, 0.35)';
-    c.lineWidth = 2;
-    c.stroke();
-    rr(c, -4, 6, 3.2, 10, 1); paint(c, '#1a1424', '#0a0810', 1);
-    rr(c, 2, 6, 3.2, 10, 1); paint(c, '#1a1424', '#0a0810', 1);
-    rr(c, -7, -8, 15, 16, 3); paint(c, fillLin(c, -7, -8, 8, 8, '#2e263c', '#14101c'), '#0a0810', 1.5);
-    blob(c, 2, -15, 7.5, 7.5); paint(c, fillRad(c, 0, -16, 1, 8, '#3a3048', '#14101c'), '#0a0810', 1.5);
-    c.beginPath();
-    c.moveTo(-6, -16);
-    c.quadraticCurveTo(2, -28, 12, -14);
-    c.quadraticCurveTo(8, -8, -4, -10);
-    c.closePath();
-    paint(c, fillLin(c, 0, -28, 6, -8, '#241c30', '#0c0a14'), '#0a0810', 1.5);
-    c.fillStyle = '#d8b4ff';
-    c.beginPath(); c.arc(3, -16, 1.7, 0, 7); c.arc(7, -16, 1.7, 0, 7); c.fill();
-    c.save();
-    c.translate(11, 1);
-    c.rotate(arm * 0.85);
-    c.fillStyle = fillLin(c, -2, -20, 2, 10, '#4a3424', '#1e140c');
-    c.fillRect(-2.2, -18, 4.4, 26);
-    c.strokeStyle = '#0a0810'; c.lineWidth = 1.2; c.strokeRect(-2.2, -18, 4.4, 26);
-    blob(c, 0, -22, 9, 7); paint(c, fillRad(c, -2, -24, 1, 9, '#6a6470', '#2a2430'), '#0a0810', 1.5);
-    c.fillStyle = 'rgba(216,180,255,0.35)';
-    c.beginPath(); c.arc(-2, -24, 2, 0, 7); c.fill();
-    c.restore();
-  } else {
-    rr(c, -7, 6, 5, 11, 1); paint(c, fillLin(c, -7, 6, -2, 16, '#5a3a22', '#2a1c10'), '#1a1008', 1);
-    rr(c, 3, 6, 5, 11, 1); paint(c, fillLin(c, 3, 6, 8, 16, '#5a3a22', '#2a1c10'), '#1a1008', 1);
-    blob(c, 0, 3, 14, 12); paint(c, fillLin(c, -12, -6, 12, 14, '#9a6a3c', '#5a381c'), '#2a180c', 2);
-    rr(c, -12, -8, 16, 17, 3); paint(c, fillLin(c, -12, -8, 4, 9, '#e0c040', '#8a6818'), '#3a2a0c', 1.5);
-    c.beginPath(); c.moveTo(-10, -2); c.lineTo(2, -2);
-    c.strokeStyle = 'rgba(60,40,10,0.35)'; c.lineWidth = 1; c.stroke();
-    c.save();
-    c.translate(-10, -4);
-    c.rotate(-0.35);
-    c.fillStyle = fillLin(c, 0, 0, 6, 0, '#6a4a28', '#3a2814');
-    c.fillRect(0, -10, 5, 16);
-    c.fillStyle = '#c8a060';
-    c.fillRect(1, -8, 3, 5);
-    c.restore();
-    blob(c, 2, -16, 8.5, 7.5); paint(c, fillRad(c, 0, -18, 1, 8, '#e0c4a0', '#8a6a48'), '#2a180c', 1.5);
-    blob(c, 2, -10, 10, 6); paint(c, fillLin(c, 2, -16, 2, -4, '#7a5a3c', '#4a301c'), '#2a180c', 1.5);
-    c.fillStyle = '#4a301c';
-    c.beginPath(); c.arc(-2, -20, 2.2, 0, 7); c.arc(4, -21, 2.4, 0, 7); c.fill();
-    c.save();
-    c.translate(12, 1);
-    c.rotate(arm * 0.4);
-    c.strokeStyle = '#4a3018';
-    c.lineWidth = 3.4;
-    c.lineCap = 'round';
-    c.beginPath();
-    c.arc(8, 0, 15, -1.15, 1.15);
-    c.stroke();
-    c.strokeStyle = '#c8b090';
-    c.lineWidth = 1.2;
-    c.beginPath();
-    c.moveTo(-2, 0); c.lineTo(20, 0);
-    c.stroke();
-    c.fillStyle = '#8a8070';
-    c.beginPath(); c.moveTo(20, 0); c.lineTo(14, -3); c.lineTo(14, 3); c.closePath(); c.fill();
-    c.fillStyle = '#c9a227';
-    c.beginPath(); c.moveTo(-2, -2.5); c.lineTo(2, 0); c.lineTo(-2, 2.5); c.closePath(); c.fill();
-    c.restore();
-  }
+  if (id === 'julian') drawJulian(c, arm);
+  else if (id === 'shadow') drawShadow(c, arm);
+  else drawPapa(c, arm);
+  c.restore();
+}
+
+function drawJulian(c, arm) {
+  c.beginPath();
+  c.moveTo(-2, -8); c.quadraticCurveTo(-26, 6, -16, 24); c.lineTo(8, 16); c.quadraticCurveTo(6, 2, 3, -6);
+  c.closePath();
+  paint(c, fillLin(c, -22, -8, 4, 22, '#3a5aaa', '#0c1834'), '#0a1020', 1.8);
+  clothFold(c, -10, 0, -8, 16, 'rgba(8,12,28,0.35)');
+  rr(c, -6, 7, 4.4, 12, 1.2); paint(c, fillLin(c, -6, 7, -2, 19, '#2a2e3a', '#0c1018'), '#080a10', 1);
+  rr(c, 2, 7, 4.4, 12, 1.2); paint(c, fillLin(c, 2, 7, 6, 19, '#1e222c', '#0a0c12'), '#080a10', 1);
+  blob(c, -3.6, 19.4, 2.6, 1.3); paint(c, fillLin(c, -5, 18, -2, 21, '#3a404c', '#12141a'), '#080a10', 0.8);
+  blob(c, 4.4, 19.4, 2.6, 1.3); paint(c, fillLin(c, 3, 18, 6, 21, '#3a404c', '#12141a'), '#080a10', 0.8);
+  rr(c, -11, -11, 22, 22, 3.2); paint(c, fillLin(c, -11, -11, 9, 11, '#2e3340', '#10141c'), '#0a1020', 1.8);
+  glint(c, -4, -6, 5, 2.4, 0.22);
+  c.beginPath(); c.moveTo(-8, -8); c.lineTo(8, -8); c.lineTo(6.4, 3); c.lineTo(-6.2, 3); c.closePath();
+  paint(c, fillLin(c, 0, -8, 0, 4, '#4a5a7a', '#1a2438'), '#0a1020', 1.1);
+  rivet(c, -6, -2); rivet(c, 5, -2);
+  c.save();
+  c.translate(-14, 3);
+  c.beginPath(); c.moveTo(-11, -9); c.lineTo(8, -5); c.lineTo(8, 13); c.lineTo(-9, 11); c.closePath();
+  paint(c, fillLin(c, -11, -9, 8, 13, '#4a68b8', '#1a2a58'), '#0a1020', 1.4);
+  c.strokeStyle = '#d0dcff'; c.lineWidth = 1; c.stroke();
+  c.fillStyle = '#d8e4ff';
+  c.font = '700 7px Palatino, serif';
+  c.textAlign = 'center';
+  c.fillText('777', -1, 5);
+  glint(c, -4, -4, 2.4, 1.2, 0.22);
+  c.restore();
+  drawFace(c, 1.2, -20.4, 7.4, 7.2, {
+    skin: '#e4bc94', deep: '#8a5a3c', eye: '#2a3a58', brow: 'rgba(50,28,16,0.5)',
+    lid: 'rgba(70,40,24,0.35)', lip: 'rgba(90,40,32,0.42)'
+  });
+  rr(c, -8, -31, 17, 11, 2.6); paint(c, fillLin(c, -8, -31, 8, -20, '#3a404c', '#10141c'), '#0a1020', 1.4);
+  c.beginPath(); c.rect(-2.2, -30, 2.2, 8); paint(c, '#8a96a8', '#0a1020', 0.8);
+  c.beginPath(); c.moveTo(3, -30.4); c.quadraticCurveTo(18, -46, 7, -28); c.quadraticCurveTo(8, -32, 3, -30.4);
+  paint(c, fillLin(c, 6, -46, 8, -28, '#6a92d8', '#1a3a78'), '#0a1020', 1.3);
+  glint(c, -2, -28, 2.6, 1.2, 0.24);
+  c.save();
+  c.translate(12, 0);
+  c.rotate(arm);
+  rr(c, -1, -3.2, 8, 6.2, 1.4); paint(c, fillLin(c, -1, -3, 6, 3, '#3a4458', '#141820'), '#0a1020', 1);
+  c.fillStyle = fillLin(c, 6, -2.4, 6, 2.4, '#dce4f0', '#6a7484');
+  c.fillRect(7, -2.1, 22, 4.2);
+  c.strokeStyle = '#0a1020'; c.lineWidth = 1.3; c.strokeRect(7, -2.1, 22, 4.2);
+  c.fillStyle = '#8a6a44';
+  c.fillRect(10, -1.15, 10, 2.3);
+  c.beginPath(); c.moveTo(28, -6.4); c.lineTo(40, 0); c.lineTo(28, 6.4); c.closePath();
+  paint(c, fillLin(c, 28, -6, 40, 6, '#f4f8ff', '#7a8494'), '#0a1020', 1.3);
+  glint(c, 33, -1.4, 2.4, 1.1, 0.32);
+  blob(c, 6.2, 0, 2.2, 2.2); paint(c, fillRad(c, 5.4, -0.6, 0.3, 2.3, '#c8d0dc', '#4a5464'), '#0a1020', 0.8);
+  c.restore();
+}
+
+function drawShadow(c, arm) {
+  c.beginPath();
+  c.moveTo(-8, -10);
+  c.quadraticCurveTo(-26, 8, -9, 24);
+  c.lineTo(13, 18);
+  c.quadraticCurveTo(20, 2, 9, -12);
+  c.quadraticCurveTo(2, -24, -6, -16);
+  c.closePath();
+  paint(c, fillLin(c, -16, -16, 8, 22, '#322848', '#0c0a14'), '#0a0810', 1.8);
+  clothFold(c, -8, -2, -5, 16, 'rgba(80,50,120,0.28)');
+  c.strokeStyle = 'rgba(80, 50, 120, 0.32)';
+  c.lineWidth = 1.6;
+  c.beginPath(); c.moveTo(-6, 0); c.quadraticCurveTo(-14, 10, -4, 20); c.stroke();
+  rr(c, -5, 7, 3.6, 11, 1.1); paint(c, fillLin(c, -5, 7, -2, 18, '#1e1828', '#0a0810'), '#0a0810', 1);
+  rr(c, 2, 7, 3.6, 11, 1.1); paint(c, fillLin(c, 2, 7, 5, 18, '#181420', '#0a0810'), '#0a0810', 1);
+  blob(c, -3, 18.4, 2.3, 1.2); paint(c, '#141018', '#08060c', 0.7);
+  blob(c, 4, 18.4, 2.3, 1.2); paint(c, '#141018', '#08060c', 0.7);
+  rr(c, -8, -9, 17, 17, 3.2); paint(c, fillLin(c, -8, -9, 8, 8, '#3a3048', '#14101c'), '#0a0810', 1.4);
+  clothFold(c, -4, -4, -1, 6, 'rgba(12,8,16,0.35)');
+  drawFace(c, 2.2, -15.6, 6.6, 6.4, {
+    skin: '#c8a888', deep: '#4a3428', eye: '#d8b4ff', white: '#2a2030',
+    brow: 'rgba(20,12,24,0.55)', lid: 'rgba(30,16,36,0.45)', noEar: true
+  });
+  c.beginPath();
+  c.moveTo(-7, -16);
+  c.quadraticCurveTo(1, -30, 13, -14);
+  c.quadraticCurveTo(8, -7, -5, -10);
+  c.closePath();
+  paint(c, fillLin(c, 0, -30, 6, -8, '#2a2238', '#0c0a14'), '#0a0810', 1.4);
+  c.beginPath();
+  c.moveTo(-1, -12); c.quadraticCurveTo(4, -8, 8, -11);
+  c.strokeStyle = 'rgba(12,8,16,0.45)'; c.lineWidth = 1.1; c.stroke();
+  c.save();
+  c.translate(12, 1);
+  c.rotate(arm * 0.85);
+  c.fillStyle = fillLin(c, -2, -20, 2, 12, '#5a4030', '#1e140c');
+  c.fillRect(-2.3, -18, 4.6, 28);
+  c.strokeStyle = '#0a0810'; c.lineWidth = 1.15; c.strokeRect(-2.3, -18, 4.6, 28);
+  c.strokeStyle = 'rgba(30,16,8,0.3)'; c.lineWidth = 0.7;
+  c.beginPath(); c.moveTo(-0.7, -16); c.lineTo(0.2, 8); c.stroke();
+  blob(c, 0, -22.5, 9.2, 7.2); paint(c, fillRad(c, -2.4, -25, 1, 9.4, '#8a8490', '#2a2430'), '#0a0810', 1.4);
+  glint(c, -2.6, -25, 2.6, 1.5, 0.28);
+  c.fillStyle = 'rgba(216,180,255,0.32)';
+  c.beginPath(); c.arc(-2.2, -24.6, 2.1, 0, Math.PI * 2); c.fill();
+  c.restore();
+}
+
+function drawPapa(c, arm) {
+  rr(c, -8, 7, 5.6, 12, 1.4); paint(c, fillLin(c, -8, 7, -3, 19, '#6a4a2c', '#2a1c10'), '#1a1008', 1);
+  rr(c, 3, 7, 5.6, 12, 1.4); paint(c, fillLin(c, 3, 7, 8, 19, '#5a3a22', '#24180c'), '#1a1008', 1);
+  blob(c, -5, 19.5, 3.2, 1.5); paint(c, fillLin(c, -6, 18, -3, 21, '#4a301c', '#1a1008'), '#140c08', 0.8);
+  blob(c, 6, 19.5, 3.2, 1.5); paint(c, fillLin(c, 5, 18, 8, 21, '#4a301c', '#1a1008'), '#140c08', 0.8);
+  blob(c, 0, 3.4, 14.8, 12.6); paint(c, fillLin(c, -12, -6, 12, 15, '#a87844', '#5a381c'), '#2a180c', 1.8);
+  clothFold(c, -6, 0, -3, 10, 'rgba(40,24,10,0.3)');
+  rr(c, -13, -9, 18, 18, 3.4); paint(c, fillLin(c, -13, -9, 4, 9, '#e8c848', '#8a6818'), '#3a2a0c', 1.5);
+  glint(c, -6, -5, 4, 2, 0.2);
+  c.beginPath(); c.moveTo(-10, -2); c.lineTo(3, -2);
+  c.strokeStyle = 'rgba(60,40,10,0.32)'; c.lineWidth = 1; c.stroke();
+  c.save();
+  c.translate(-11, -3);
+  c.rotate(-0.38);
+  rr(c, 0, -11, 5.4, 18, 1.2); paint(c, fillLin(c, 0, -11, 5, 6, '#7a5630', '#3a2814'), '#1a1008', 1);
+  c.fillStyle = fillLin(c, 1, -9, 4, -3, '#d8b060', '#8a6818');
+  c.fillRect(1.1, -9, 3.2, 6);
+  c.restore();
+  drawFace(c, 2.2, -16.6, 7.8, 7.2, {
+    skin: '#e0b07a', deep: '#8a5a30', eye: '#3a2414', brow: 'rgba(60,32,16,0.5)',
+    beard: '#5a3a20', beardD: '#2a180c', lid: 'rgba(70,40,20,0.35)'
+  });
+  c.beginPath();
+  c.moveTo(-5.4, -21); c.quadraticCurveTo(2, -27, 9.6, -20.4); c.lineTo(8, -16.8); c.quadraticCurveTo(2, -21, -4.2, -17.2);
+  c.closePath();
+  paint(c, fillLin(c, 2, -27, 2, -17, '#6a4a28', '#3a2814'), '#1a1008', 1.1);
+  c.fillStyle = '#4a301c';
+  c.beginPath(); c.arc(-1.6, -21.4, 2.3, 0, Math.PI * 2); c.arc(4.4, -22, 2.5, 0, Math.PI * 2); c.fill();
+  c.save();
+  c.translate(13, 1);
+  c.rotate(arm * 0.4);
+  c.strokeStyle = '#3a2414';
+  c.lineWidth = 3.6;
+  c.lineCap = 'round';
+  c.beginPath();
+  c.arc(8, 0, 15.5, -1.18, 1.18);
+  c.stroke();
+  c.strokeStyle = fillLin(c, 8, -16, 8, 16, '#c8a060', '#5a3a18');
+  c.lineWidth = 2.2;
+  c.beginPath();
+  c.arc(8, 0, 15.5, -1.18, 1.18);
+  c.stroke();
+  c.strokeStyle = '#d8c8a8';
+  c.lineWidth = 1.15;
+  c.beginPath();
+  c.moveTo(-2, 0); c.lineTo(21, 0);
+  c.stroke();
+  c.fillStyle = '#8a8070';
+  c.beginPath(); c.moveTo(21, 0); c.lineTo(14.5, -3.2); c.lineTo(14.5, 3.2); c.closePath(); c.fill();
+  c.fillStyle = '#c9a227';
+  c.beginPath(); c.moveTo(-2.4, -2.6); c.lineTo(2.2, 0); c.lineTo(-2.4, 2.6); c.closePath(); c.fill();
   c.restore();
 }
 
@@ -1964,6 +2217,8 @@ function syncHeroUI() {
     $('#abilityHint').textContent = 'Select a hero';
     setCdBar(ab, 0, 1);
   }
+  const rf = $('#btnReinforce');
+  if (rf) rf.classList.toggle('sel', state.placing === 'reinforce');
 }
 
 function syncCds() {
@@ -2001,7 +2256,12 @@ function onWorldTap(p) {
   if (p.x < -20 || p.y < -20 || p.x > W + 20 || p.y > H + 20) return;
 
   if (state.placing === 'reinforce') {
-    dropReinforce(p);
+    if (distToPath(p) <= 58) dropReinforce(p);
+    else {
+      state.placing = null;
+      syncHeroUI();
+      toast('Hold.');
+    }
     return;
   }
   if (state.rallyPick) {
@@ -2060,8 +2320,10 @@ function onWorldTap(p) {
   syncHeroUI();
 }
 
-function startPlay() {
+function startPlay(difficulty) {
   ensureAudio();
+  if (difficulty === 'standard' || difficulty === 'veteran') state.difficulty = difficulty;
+  if (state.difficulty !== 'veteran') state.difficulty = 'standard';
   resetRun(0);
   state.mode = 'play';
   $('#scrStart').hidden = true;
@@ -2076,7 +2338,7 @@ function startPlay() {
   paintMini('julian', $('#hbJulian .mini'));
   paintMini('shadow', $('#hbShadow .mini'));
   paintMini('papa', $('#hbPapa .mini'));
-  toast(currentLevel().name + '. Sir Julian the Brave stands at the gate.');
+  toast(currentLevel().name + '. ' + (isVeteran() ? 'Veteran siege. Foes run thicker.' : 'Standard siege. Sir Julian the Brave stands at the gate.'));
 }
 
 function pauseGame() {
@@ -2101,12 +2363,13 @@ function restartFromOverlay() {
     resetRun(keep);
     state.mode = 'play';
     showHud(true);
-    toast(currentLevel().name + '. Stand again.');
+    toast(currentLevel().name + '. Stand again. ' + modeLabel() + '.');
   }
 }
 
 function bindUI() {
-  $('#btnPlay').onclick = startPlay;
+  $('#btnStandard').onclick = () => startPlay('standard');
+  $('#btnVeteran').onclick = () => startPlay('veteran');
   $('#btnHow').onclick = () => { $('#scrHow').hidden = false; };
   const closeHow = () => { $('#scrHow').hidden = true; };
   $('#btnHowClose').onclick = closeHow;
@@ -2115,7 +2378,7 @@ function bindUI() {
   $('#btnResume').onclick = resumeGame;
   $('#btnRestartPause').onclick = restartFromOverlay;
   $('#btnRetry').onclick = restartFromOverlay;
-  $('#btnVictory').onclick = startPlay;
+  $('#btnVictory').onclick = () => startPlay();
   $('#btnNext').onclick = startNextSiege;
   $('#btnMute').onclick = () => {
     soundOn = !soundOn;
@@ -2125,9 +2388,17 @@ function bindUI() {
   $('#btnWave').onclick = () => { ensureAudio(); tryCallWave(); };
   $('#btnReinforce').onclick = () => {
     if (state.mode !== 'play') return;
+    if (state.placing === 'reinforce') {
+      state.placing = null;
+      syncHeroUI();
+      toast('Hold.');
+      return;
+    }
     if (state.reinforceCd > 0) { toast('Soldiers are catching their breath.'); return; }
     state.placing = 'reinforce';
+    state.selected = null;
     hideMenus();
+    syncHeroUI();
     toast('Tap the road.');
   };
   $('#btnAbility').onclick = () => {

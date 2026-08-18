@@ -26,9 +26,12 @@ Web will host this on Light Magenta later.
 - Tap an empty pad for a build card. Each tower has two upgrades with a new trick.
 - Tap a hero or their portrait, then tap the ground to send them. They fight on their own.
 - Barracks soldiers and Aussie's wall body-block the lane. Nightwings fly over.
-- Call the next wave early for a little gold. Three maps, each harder. Night Gate ends with the boss.
+- Call the next wave early for a little gold. Three maps, each harder. Night Gate ends with Marrow the Gatebreaker. If he leaks, the keep falls at once.
+- Title: Standard (current difficulty) or Veteran (22% more enemy hit points). The pick lasts the run, including One More Siege, until you choose again on the title.
 
 ### Heroes
+
+Heroes and foes are drawn as painted tabletop miniatures (faces, armor, cloth, weapons). Identities stay: Julian black/blue sword, Papa the stout archer, Aussie the ninja hammer-blocker.
 
 - Sir Julian the Brave -- central great hero. Black and blue, sword, 777 on the shield. Lionheart: a sword dash and smash.
 - Shadow Aussie -- ninja blocker. Melee hammer, tanky, slows, body-blocks the lane. Bulwark: a stun slam and a short-lived lane wall.
@@ -42,7 +45,7 @@ Web will host this on Light Magenta later.
 
 ### Powers
 
-Reinforcements drop two temporary soldiers on the road. Mute lives in the top bar.
+Reinforcements drop two soldiers on the road. They stay until they fall; you can stack more drops. Mute lives in the top bar.
 
 ## A note on secrets
 
