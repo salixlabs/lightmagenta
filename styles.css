@@ -85,6 +85,9 @@ a.tile:hover, a.tile:focus-visible {
 
 .tile-spartan { background: linear-gradient(180deg, #2a2218 0%, var(--card) 70%); }
 .tile-app { background: linear-gradient(180deg, #1b2030 0%, var(--card) 70%); }
+.tile-hammer { background: linear-gradient(180deg, #3a2a12 0%, var(--card) 70%); }
+.tile-keep { background: linear-gradient(180deg, #1a2418 0%, var(--card) 70%); }
+.tile-keep[aria-disabled="true"] { cursor: default; opacity: 0.85; }
 .tile-next {
   border-style: dashed;
   background: transparent;
