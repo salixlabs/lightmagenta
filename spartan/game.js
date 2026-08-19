@@ -1,4 +1,4 @@
-/* Spartan – Silent Spire 0.4.0 — simulation + render. Input lives in input.js. */
+/* Spartan – Silent Spire 0.4.1 — simulation + render. Input lives in input.js. */
 (function () {
   "use strict";
   var D = SS.data;

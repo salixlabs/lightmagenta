@@ -1,8 +1,8 @@
-Spartan – Silent Spire 0.4.0
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/0081cbe8a6d24606ba6153230425ebbb4c99ab81
+Spartan – Silent Spire 0.4.1
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/2b6bc3c8a5d732b3ccaab80fa0c38a823ca25dc8
 
 name: Spartan – Silent Spire
-version: 0.4.0
+version: 0.4.1
 play: https://lightmagenta.com/spartan
 
 Web pins this folder to the Light Magenta hub.

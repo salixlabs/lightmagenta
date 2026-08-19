@@ -6,18 +6,18 @@ In-game you are **the Spartan** / **Chief**. Chest number **444** and **Austin S
 No build step. Vanilla JS + Canvas 2D. Works offline.
 
 **Play URL:** https://lightmagenta.com/spartan  
-**Version:** 0.4.0  
+**Version:** 0.4.1  
 WebDev hosts this on the Light Magenta hub. No GitHub Pages. No DNS work in this repo.
 
 **Target: Safari on iPad, landscape.** That is the only device/browser this build is tuned for.
 
-## Scope of 0.4.0
+## Scope of 0.4.1
 
 This drop is **Crimson Approach** only.
 
-- Title splash: `title-silent-spire.png` with **SPARTAN – SILENT SPIRE**, **AUSTIN-444**, **TAP TO START**, **0.4.0**
+- Title splash: `title-silent-spire.png` with **SPARTAN – SILENT SPIRE**, **AUSTIN-444**, **TAP TO START**, **0.4.1**
 - Pre-mission skulls + difficulty
-- Twin-stick iPad touch
+- Twin-stick iPad touch (persistent lower-left move stick)
 - Pelican drop + Marines + Sergeant Johnson
 - Austin-444 / Austin Suit / A crate / Austin's Gun
 - Finish L1 → short Cortana/Chief beat → **Coming next: Outer Ring**
@@ -26,7 +26,7 @@ Campaign names 2–6 appear on the briefing as a stub. They are **not playable**
 
 ## Files (keep these together)
 
-- `VERSION` — `0.4.0`
+- `VERSION` — `0.4.1`
 - `SOURCE.txt` — name, version, play URL (Web pins this folder)
 - `index.html` — shell, touch HUD, briefing / pause
 - `data.js` — weapons, skulls, difficulties, Crimson Approach
@@ -58,7 +58,7 @@ Then on the iPad: `http://<your-computer-ip>:8080/`.
 
 ## Controls (iPad, 100% touch)
 
-**Left** — analog appears under the thumb. Double-tap or flick up = thruster. Pull down = crouch.
+**Left** — persistent analog stick in the lower-left (safe-area aware). Double-tap or flick up = thruster. Pull down = crouch.
 
 **Right** — independent **aim stick**, large **FIRE**, **JUMP**, **MELEE**, **NADE** (hold to cook), **WEP** (tap to cycle, hold for radial). **USE** when a data-pad is close.
 

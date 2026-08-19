@@ -170,7 +170,7 @@
     if (knob) {
       knob.style.transform = "translate(" + dx + "px," + dy + "px)";
     }
-    if (appear && stick.y < -0.72) this._flickArmed = true;
+    if (stick.y < -0.72) this._flickArmed = true;
   };
 
   Input.prototype._resetMove = function () {
@@ -186,11 +186,7 @@
     this._flickArmed = false;
     this.move.x = 0; this.move.y = 0; this.move.on = false; this.move.id = null;
     if (knob) knob.style.transform = "translate(0,0)";
-    if (zone) {
-      zone.classList.remove("live-stick");
-      var base = zone.querySelector(".stick-base");
-      if (base) { base.classList.remove("show"); base.style.left = ""; base.style.top = ""; }
-    }
+    if (zone) zone.classList.remove("live-stick");
   };
 
   Input.prototype._resetAim = function () {
@@ -225,13 +221,13 @@
         }
         self._lastTap = now;
         self.move.id = t.identifier;
-        self._stickFrom(self.move, t, movePad, document.getElementById("moveKnob"), true);
+        self._stickFrom(self.move, t, movePad, document.getElementById("moveKnob"), false);
       }, { passive: false });
       this._on(movePad, "touchmove", function (e) {
         e.preventDefault();
         for (var i = 0; i < e.changedTouches.length; i++) {
           var t = e.changedTouches[i];
-          if (t.identifier === self.move.id) self._stickFrom(self.move, t, movePad, document.getElementById("moveKnob"), true);
+          if (t.identifier === self.move.id) self._stickFrom(self.move, t, movePad, document.getElementById("moveKnob"), false);
         }
       }, { passive: false });
       function endMove(e) {

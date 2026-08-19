@@ -1,8 +1,8 @@
-/* Spartan – Silent Spire 0.4.0 — data tables (weapons, enemies, skulls, campaign). */
+/* Spartan – Silent Spire 0.4.1 — data tables (weapons, enemies, skulls, campaign). */
 (function (g) {
   "use strict";
   var DATA = {
-    VERSION: "0.4.0",
+    VERSION: "0.4.1",
     TITLE: "SPARTAN – SILENT SPIRE",
     HERO: "AUSTIN-444",
     PLAY_URL: "https://lightmagenta.com/spartan",
