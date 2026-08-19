@@ -33,7 +33,6 @@
     this.el = opts.root;
     this.settings = loadSettings();
     this.move = { x: 0, y: 0, on: false, id: null, sx: 0, sy: 0 };
-    this.aim = { x: 0, y: 0, on: false, id: null };
     this.fire = false;
     this.jump = false;
     this.melee = false;
@@ -89,13 +88,13 @@
     var mag = Math.hypot(mx, my);
     if (mag > 1) { mx /= mag; my /= mag; mag = 1; }
 
-    if (k.i || k.I) ax -= 1;
-    if (k.l || k.L) ax += 1;
-    if (k.j || k.J) { /* reserved */ }
-    if (k.ArrowUp && !this.move.on && !k.w && !k.W) { /* move already counted */ }
-    if (this.aim.on) { ax += this.aim.x; ay += this.aim.y; }
-    else if (k.q || k.Q) { ay -= 1; }
-    else if (k.e || k.E) { ay += 1; }
+    /* One stick: 360 aim from the same analog. Y pitches only — never fly. */
+    if (this.move.on) { ax += this.move.x; ay += this.move.y; }
+    else {
+      if (Math.abs(mx) > 0.12 || Math.abs(my) > 0.12) { ax += mx; ay += my; }
+      if (k.q || k.Q) ay -= 1;
+      if (k.e || k.E) ay += 1;
+    }
     var am = Math.hypot(ax, ay);
     if (am > 1) { ax /= am; ay /= am; am = 1; }
 
@@ -189,16 +188,9 @@
     if (zone) zone.classList.remove("live-stick");
   };
 
-  Input.prototype._resetAim = function () {
-    var knob = document.getElementById("aimKnob");
-    this.aim.x = 0; this.aim.y = 0; this.aim.on = false; this.aim.id = null;
-    if (knob) knob.style.transform = "translate(0,0)";
-  };
-
   Input.prototype._bindDom = function () {
     var self = this;
     var movePad = document.getElementById("movePad");
-    var aimPad = document.getElementById("aimPad");
     var fireBtn = document.getElementById("fireBtn");
     var jumpBtn = document.getElementById("jumpBtn");
     var meleeBtn = document.getElementById("meleeBtn");
@@ -237,29 +229,6 @@
       }
       this._on(movePad, "touchend", endMove, { passive: false });
       this._on(movePad, "touchcancel", endMove, { passive: false });
-    }
-
-    if (aimPad) {
-      this._on(aimPad, "touchstart", function (e) {
-        e.preventDefault();
-        var t = e.changedTouches[0];
-        self.aim.id = t.identifier;
-        self._stickFrom(self.aim, t, aimPad, document.getElementById("aimKnob"), false);
-      }, { passive: false });
-      this._on(aimPad, "touchmove", function (e) {
-        e.preventDefault();
-        for (var i = 0; i < e.changedTouches.length; i++) {
-          var t = e.changedTouches[i];
-          if (t.identifier === self.aim.id) self._stickFrom(self.aim, t, aimPad, document.getElementById("aimKnob"), false);
-        }
-      }, { passive: false });
-      function endAim(e) {
-        for (var i = 0; i < e.changedTouches.length; i++) {
-          if (e.changedTouches[i].identifier === self.aim.id) self._resetAim();
-        }
-      }
-      this._on(aimPad, "touchend", endAim, { passive: false });
-      this._on(aimPad, "touchcancel", endAim, { passive: false });
     }
 
     function holdBtn(btn, prop, evName) {

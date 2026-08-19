@@ -50,80 +50,64 @@
       border: 3px solid rgba(232,196,96,0.4);
       box-shadow: inset 0 0 24px rgba(0,0,0,0.45);
     }
-    #aimPad {
-      right: calc(max(16px, var(--safe-r)) + 168px);
-      bottom: calc(max(22px, var(--safe-b)) + 148px);
-      width: 168px; height: 168px;
-    }
-    .stick-base#aimBase, #aimPad .stick-base {
-      position: absolute; inset: 0; border-radius: 50%;
-      background: rgba(12,18,28, calc(var(--btn-a) * 0.42));
-      border: 3px solid rgba(94,234,212,0.4);
-    }
     .knob {
-      position: absolute; width: 68px; height: 68px; border-radius: 50%;
-      left: 50%; top: 50%; margin: -34px 0 0 -34px;
+      position: absolute; width: 76px; height: 76px; border-radius: 50%;
+      left: 50%; top: 50%; margin: -38px 0 0 -38px;
       background: radial-gradient(circle at 35% 30%, #f0d27a, #b8862a 55%, #5a3c10);
       border: 2px solid #f6e2a0;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       will-change: transform;
     }
-    #aimKnob {
-      background: radial-gradient(circle at 35% 30%, #8ff0e0, #1a7a78 55%, #0a3030);
-      border-color: #b6f3e8;
-    }
-    #moveKnob {
-      width: 76px; height: 76px; margin: -38px 0 0 -38px;
-    }
     #fireBtn {
       right: max(16px, var(--safe-r));
       bottom: max(22px, var(--safe-b));
-      width: 132px; height: 132px; border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, #ff8a3d, #c43a12 60%, #4a1208);
-      border: 4px solid #ffd27a;
-      color: #fff7e0; font-size: 28px; letter-spacing: 2px;
+      border: 3px solid #ffd27a;
+      color: #fff7e0; font-size: 18px; letter-spacing: 1px;
       display: flex; align-items: center; justify-content: center;
       text-shadow: 0 2px 0 #4a1208;
-      box-shadow: 0 8px 0 #5a1808, 0 12px 24px rgba(0,0,0,0.45);
+      box-shadow: 0 6px 0 #5a1808, 0 10px 20px rgba(0,0,0,0.45);
       opacity: var(--btn-a);
     }
     #jumpBtn {
-      right: calc(max(16px, var(--safe-r)) + 146px);
-      bottom: max(28px, var(--safe-b));
-      width: 112px; height: 112px; border-radius: 50%;
+      right: calc(max(16px, var(--safe-r)) + 100px);
+      bottom: max(22px, var(--safe-b));
+      width: 76px; height: 76px; border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, #8ff0c8, #1a7a58 58%, #0a3028);
-      border: 4px solid #b6f3d4;
-      color: #f4fff8; font-size: 24px; letter-spacing: 2px;
+      border: 3px solid #b6f3d4;
+      color: #f4fff8; font-size: 16px; letter-spacing: 1px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 8px 0 #0c3a30, 0 12px 24px rgba(0,0,0,0.45);
+      box-shadow: 0 6px 0 #0c3a30, 0 10px 20px rgba(0,0,0,0.45);
       opacity: var(--btn-a);
     }
     #meleeBtn, #nadeBtn, #wepBtn, #useBtn {
-      width: 84px; height: 84px; border-radius: 50%;
+      width: 76px; height: 76px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 15px; letter-spacing: 1px; color: #fff6e0;
       opacity: var(--btn-a);
     }
     #meleeBtn {
-      right: calc(max(16px, var(--safe-r)) + 146px);
-      bottom: calc(max(28px, var(--safe-b)) + 122px);
+      right: calc(max(16px, var(--safe-r)) + 100px);
+      bottom: calc(max(22px, var(--safe-b)) + 100px);
       background: radial-gradient(circle at 35% 30%, #86efac, #166534 58%, #052e16);
       border: 3px solid #bbf7d0;
       box-shadow: 0 6px 0 #14532d;
     }
     #nadeBtn {
-      right: max(22px, var(--safe-r));
-      bottom: calc(max(22px, var(--safe-b)) + 142px);
+      right: max(16px, var(--safe-r));
+      bottom: calc(max(22px, var(--safe-b)) + 100px);
       background: radial-gradient(circle at 35% 30%, #fde68a, #b45309 58%, #431407);
       border: 3px solid #fcd34d;
       box-shadow: 0 6px 0 #78350f;
     }
     #wepBtn {
-      right: max(22px, var(--safe-r));
-      bottom: calc(max(22px, var(--safe-b)) + 236px);
+      right: max(16px, var(--safe-r));
+      bottom: calc(max(22px, var(--safe-b)) + 196px);
       background: radial-gradient(circle at 35% 30%, #93c5fd, #1e3a8a 58%, #0f172a);
       border: 3px solid #bfdbfe;
       box-shadow: 0 6px 0 #1e3a8a;
+      font-size: 16px;
     }
     #useBtn {
       display: none;
@@ -144,12 +128,11 @@
       opacity: var(--btn-a);
     }
     #touch.lefty #movePad { left: auto; right: max(16px, var(--safe-r)); }
-    #touch.lefty #aimPad { right: auto; left: calc(max(16px, var(--safe-l)) + 168px); }
     #touch.lefty #fireBtn { right: auto; left: max(16px, var(--safe-l)); }
-    #touch.lefty #jumpBtn { right: auto; left: calc(max(16px, var(--safe-l)) + 146px); }
-    #touch.lefty #meleeBtn { right: auto; left: calc(max(16px, var(--safe-l)) + 146px); }
-    #touch.lefty #nadeBtn { right: auto; left: max(22px, var(--safe-l)); }
-    #touch.lefty #wepBtn { right: auto; left: max(22px, var(--safe-l)); }
+    #touch.lefty #jumpBtn { right: auto; left: calc(max(16px, var(--safe-l)) + 100px); }
+    #touch.lefty #meleeBtn { right: auto; left: calc(max(16px, var(--safe-l)) + 100px); }
+    #touch.lefty #nadeBtn { right: auto; left: max(16px, var(--safe-l)); }
+    #touch.lefty #wepBtn { right: auto; left: max(16px, var(--safe-l)); }
     #touch.lefty #pauseBtn { right: auto; left: max(14px, var(--safe-l)); }
     .panel {
       position: absolute; inset: 0; display: none;
@@ -227,14 +210,11 @@
         <div id="movePad" class="hit">
           <div class="stick-base"><div id="moveKnob" class="knob"></div></div>
         </div>
-        <div id="aimPad" class="hit">
-          <div id="aimBase" class="stick-base"><div id="aimKnob" class="knob"></div></div>
-        </div>
         <button id="fireBtn" class="hit">FIRE</button>
         <button id="jumpBtn" class="hit">JUMP</button>
         <button id="meleeBtn" class="hit">MELEE</button>
         <button id="nadeBtn" class="hit">NADE</button>
-        <button id="wepBtn" class="hit">WEP</button>
+        <button id="wepBtn" class="hit">GUNS</button>
         <button id="useBtn" class="hit">USE</button>
         <button id="pauseBtn" class="hit">II</button>
       </div>
@@ -242,7 +222,7 @@
       <div id="brief" class="panel">
         <div class="card">
           <h2>SILENT SPIRE</h2>
-          <p class="sub">Crimson Approach — Level 1 vertical slice. Pick difficulty and skulls, then drop. Stages 2–6 are listed only.</p>
+          <p class="sub">Six-level campaign. Pick difficulty and skulls, then drop. Walk over pickups. One stick. GUNS to swap.</p>
           <p class="sub" id="campaignStub"></p>
           <div class="row" id="diffs"></div>
           <div class="skulls" id="skulls"></div>
@@ -268,7 +248,7 @@
           <div class="setrow"><label>Colorblind outlines</label><input id="cbCheck" type="checkbox" /></div>
           <div class="setrow"><label>Reduced motion</label><input id="rmCheck" type="checkbox" /></div>
           <div class="setrow"><label>Large text</label><input id="ltCheck" type="checkbox" /></div>
-          <p class="sub" id="hint">Twin-stick · FIRE · JUMP · MELEE · hold NADE to cook · WEP tap/hold · flick-up / double-tap thruster · pull down crouch</p>
+          <p class="sub" id="hint">One stick · FIRE · JUMP · MELEE · hold NADE to cook · GUNS tap/hold · walk over pickups · flick-up / double-tap thruster · pull down crouch</p>
           <button class="primary" id="resume">RESUME</button>
         </div>
       </div>
