@@ -1,11 +1,11 @@
-Spartan Forge 0.3.0
-Pinned playable copy from https://github.com/salixlabs/spartan/commit/0eee260f519ed185d97719df2c6e925a28599b5d
+Spartan – Silent Spire 0.4.0
+Pinned playable copy from https://github.com/salixlabs/spartan/commit/0081cbe8a6d24606ba6153230425ebbb4c99ab81
 
-Same gameplay as ea2bbb459c04ef8bc5a78766b0acc1a3d7349397; this commit adds VERSION + SOURCE.txt.
-name: Spartan Forge
-version: 0.3.0
+name: Spartan – Silent Spire
+version: 0.4.0
 play: https://lightmagenta.com/spartan
 
-Pelican drops, scrolling stages, Shotgun, and in-hand weapons.
-Files: index.html, README.md, VERSION, SOURCE.txt, title-spartan-444.png, spartan-444-side.png, austin-suit-side.png, spartan-arena-bg.png, enemy-ember.png, enemy-reaver.png, boss-vorrak.png, sergeant-johnson.png, pelican-dropship.png, marine-female.png, marine-heavy.png
+Web pins this folder to the Light Magenta hub.
+Crimson Approach Level 1 vertical slice.
+Files: README.md, SOURCE.txt, VERSION, austin-suit-side.png, boss-vorrak.png, data.js, enemy-ember.png, enemy-reaver.png, game.js, index.html, input.js, marine-female.png, marine-heavy.png, pelican-dropship.png, sergeant-johnson.png, spartan-444-side.png, spartan-arena-bg.png, title-silent-spire.png, title-spartan-444.png
 Source repo stays private.
