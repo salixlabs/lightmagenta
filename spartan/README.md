@@ -1,35 +1,42 @@
 # Spartan – Silent Spire
 
-Playable **Level 1 vertical slice** of a landscape run-and-gun for **Austin**.  
+Playable **six-level campaign** of a landscape run-and-gun for **Austin**.  
 In-game you are **the Spartan** / **Chief**. Chest number **444** and **Austin Suit** stay as identity / easter.
 
 No build step. Vanilla JS + Canvas 2D. Works offline.
 
 **Play URL:** https://lightmagenta.com/spartan  
-**Version:** 0.4.1  
+**Version:** 0.5.0  
 WebDev hosts this on the Light Magenta hub. No GitHub Pages. No DNS work in this repo.
 
 **Target: Safari on iPad, landscape.** That is the only device/browser this build is tuned for.
 
-## Scope of 0.4.1
+## Scope of 0.5.0
 
-This drop is **Crimson Approach** only.
+Full campaign, left-to-right scroll. Each stage looks and plays different.
 
-- Title splash: `title-silent-spire.png` with **SPARTAN – SILENT SPIRE**, **AUSTIN-444**, **TAP TO START**, **0.4.1**
+1. **Crimson Approach** — Covenant vane, Pelican fireteam, A crate
+2. **Outer Ring: Blood of the Covenant** — denser elites/turrets, more plasma, tighter platforms, red/purple
+3. **The Gravity Well** — lift / low-grav / flip wells, floating platforms, still run-and-gun
+4. **Infection Vector** — Flood starts: fast crawlers + bloated carriers. Green/sick light. Birthday skull still pops (no gore)
+5. **The Spire’s Heart** — Forerunner halls, tight corridors, Covenant remnants + Flood, data-pad lore
+6. **Core Overload** — escalating waves, then Tartarus. Short win beat after
+
+Between levels: a short Cortana/Chief interstitial. Chief is sparse. Cortana has personality.
+
+- Title splash: `title-silent-spire.png` with **SPARTAN – SILENT SPIRE**, **AUSTIN-444**, **TAP TO START**, **0.5.0**
 - Pre-mission skulls + difficulty
-- Twin-stick iPad touch (persistent lower-left move stick)
+- Single lower-left move/aim stick (no right analog)
+- Walk-over pickups only (guns, ammo, A crate, data-pads, Johnson beacon). Shooting does not collect or knock them.
 - Pelican drop + Marines + Sergeant Johnson
 - Austin-444 / Austin Suit / A crate / Austin's Gun
-- Finish L1 → short Cortana/Chief beat → **Coming next: Outer Ring**
-
-Campaign names 2–6 appear on the briefing as a stub. They are **not playable**. No Flood. No Tartarus fight in this slice.
 
 ## Files (keep these together)
 
-- `VERSION` — `0.4.1`
+- `VERSION` — `0.5.0`
 - `SOURCE.txt` — name, version, play URL (Web pins this folder)
 - `index.html` — shell, touch HUD, briefing / pause
-- `data.js` — weapons, skulls, difficulties, Crimson Approach
+- `data.js` — weapons, skulls, difficulties, campaign levels 1–6
 - `input.js` — touch + keyboard platform layer
 - `game.js` — simulation + render
 - `title-silent-spire.png` — cinematic title splash
@@ -58,20 +65,22 @@ Then on the iPad: `http://<your-computer-ip>:8080/`.
 
 ## Controls (iPad, 100% touch)
 
-**Left** — persistent analog stick in the lower-left (safe-area aware). Double-tap or flick up = thruster. Pull down = crouch.
+**Left** — one persistent analog in the lower-left (safe-area aware). 360 aim follows this stick; analog Y pitches only (no fly). Double-tap or flick up = thruster. Pull down = crouch.
 
-**Right** — independent **aim stick**, large **FIRE**, **JUMP**, **MELEE**, **NADE** (hold to cook), **WEP** (tap to cycle, hold for radial). **USE** when a data-pad is close.
+**Right** — **FIRE**, **JUMP**, **MELEE**, **NADE** (hold to cook), **GUNS** (tap to cycle, hold for radial). No second stick.
+
+**Pickups** — walk over guns, ammo, power-ups, the **A** crate, data-pads, and the Johnson beacon. Shooting a pickup does not collect, destroy, or knock it. First time nearby: **WALK OVER TO PICK UP**.
 
 Settings in pause: left/right-handed, opacity, sensitivity, aim assist, colorblind outlines, reduced motion, large text.
 
-**Keyboard** (desktop debug only): WASD move, Q/E aim up/down, Space jump, X fire, F melee, G grenade, 1–9 weapons, P pause.
+**Keyboard** (desktop debug only): WASD move + aim, Q/E pitch, Space jump, X fire, F melee, G grenade, 1–9 weapons, P pause.
 
 ## Skulls (title / pre-mission)
 
 Multi-select. HUD icons while playing.
 
-1. **Birthday** — confetti/streamers, no gore (**works in L1**)
-2. **Active Camo** — Spartan near-invisible; enemies ignore the player and still attack Marines (**works in L1**)
+1. **Birthday** — confetti/streamers, no gore (**works in all levels**, including Flood)
+2. **Active Camo** — Spartan near-invisible; enemies ignore the player and still attack Marines
 3. Iron — death restarts the level
 4. Black Eye — shields recharge on melee only
 5. Cowbell — huge explosions / shake
@@ -79,6 +88,6 @@ Multi-select. HUD icons while playing.
 
 ## Play loop
 
-Title → skulls / difficulty → short drop cine → **Crimson Approach** (left-to-right scroll) → Pelican fireteam → clear the sector → coming-next cine → tap to restart.
+Title → skulls / difficulty → drop cine → **L1–L6** with Cortana/Chief beats between → Tartarus → win cine → tap to restart.
 
-Weapons in this slice: Assault Rifle, Magnum, Shotgun and Plasma pickups, Energy Sword via WEP if found later in the radial lock list, Austin's Gun from the **A** crate or Konami pad (`↑ ↑ ↓ ↓ ← → ← →`).
+Weapons: Assault Rifle, Magnum, Shotgun, Plasma, Needler, Rocket, Energy Sword, Sniper (walk over pickups). Austin's Gun from walking over the **A** crate, the L6 drop, or the Konami pad (`↑ ↑ ↓ ↓ ← → ← →`).

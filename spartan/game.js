@@ -1,4 +1,4 @@
-/* Spartan – Silent Spire 0.4.1 — simulation + render. Input lives in input.js. */
+/* Spartan – Silent Spire 0.5.0 — simulation + render. Input lives in input.js. */
 (function () {
   "use strict";
   var D = SS.data;
@@ -82,7 +82,8 @@
   var nades = 3, cook = 0, cooking = false;
   var pads = [];
   var wepDrops = [];
-  var nearbyPad = null;
+  var beacons = [];
+  var pickupHinted = false;
   var meleeLock = 0;
 
   function lsGet(k) { return SS.lsGet(k); }
@@ -114,7 +115,7 @@
     face: 1, onG: false, hp: 100, maxHp: 100, sh: 80, maxSh: 80,
     lastHit: -99, wep: 0, cool: 0, heat: 0, over: false,
     suit: "olive", inv: 0, muzzle: 0, aim: 0, crouched: false,
-    owned: emptyOwned(), ammo: emptyAmmo()
+    owned: emptyOwned(), ammo: emptyAmmo(), _ck: {}
   };
 
   function Pool(n, make) {
@@ -375,6 +376,61 @@
     for (var i = 0; i < WEPS.length; i++) if (WEPS[i].id === id) return i;
     return 0;
   }
+  function hintPickupOnce() {
+    if (pickupHinted) return;
+    pickupHinted = true;
+    toast("WALK OVER TO PICK UP", 2.2);
+  }
+  function nearCollectible(o, reach) {
+    if (!o) return false;
+    var px = player.x + player.w / 2, py = player.y + player.h / 2;
+    return Math.hypot(px - (o.x + o.w / 2), py - (o.y + o.h / 2)) < (reach || 200);
+  }
+  function takePad(pad) {
+    if (!pad || pad.got) return;
+    pad.got = true;
+    var info = D.PADS[pad.id];
+    if (info) { toast(info.title, 2.2); sayCortana(info.body, 3.4); }
+    input.setInteract(false);
+  }
+  function takeBeacon(b) {
+    if (!b || b.got) return;
+    b.got = true;
+    toast("JOHNSON BEACON", 1.8);
+    sayCortana("Beacon's live. Pelican inbound.", 2.4);
+    callPelican(b.drop && b.drop.length ? b.drop : ["johnson"], player.x + 260);
+    beep(262, 0.1, "triangle", 0.06, 392);
+  }
+  function takeCrate() {
+    if (!crate || !crate.live) return;
+    crate.live = false;
+    unlockGun();
+    unlockSuit();
+    burst(crate.x + 22, crate.y + 22, 24, ["#f6e2a0", "#ffb020", "#fff"], 280, 0.5);
+    toast("A CRATE — WALKED OVER", 2);
+  }
+  function collectWalkOvers() {
+    var i, o;
+    if (!pickupHinted) {
+      var near = crate && crate.live && nearCollectible(crate, 220);
+      for (i = 0; !near && i < pads.length; i++) if (!pads[i].got && nearCollectible(pads[i], 200)) near = true;
+      for (i = 0; !near && i < wepDrops.length; i++) if (!wepDrops[i].got && nearCollectible(wepDrops[i], 200)) near = true;
+      for (i = 0; !near && i < beacons.length; i++) if (!beacons[i].got && nearCollectible(beacons[i], 200)) near = true;
+      for (i = 0; !near && i < pickups.length; i++) if (nearCollectible(pickups[i], 180)) near = true;
+      if (near) hintPickupOnce();
+    }
+    if (crate && crate.live && aabb(player, crate)) takeCrate();
+    for (i = 0; i < pads.length; i++) if (!pads[i].got && aabb(player, pads[i])) takePad(pads[i]);
+    for (i = 0; i < wepDrops.length; i++) {
+      o = wepDrops[i];
+      if (!o.got && aabb(player, o)) {
+        o.got = true;
+        if (o.wep === "austin") { unlockGun(); unlockSuit(); }
+        else unlockWep(o.wep, true);
+      }
+    }
+    for (i = 0; i < beacons.length; i++) if (!beacons[i].got && aabb(player, beacons[i])) takeBeacon(beacons[i]);
+  }
   function unlockWep(id, swap) {
     player.owned[id] = true;
     var i = wepIndex(id);
@@ -386,7 +442,7 @@
   function setWep(i) {
     if (i < 0 || i >= WEPS.length) return;
     var w = WEPS[i];
-    if (w.secret && !store.gun) { toast("LOCKED — find the A crate", 1.6); return; }
+    if (w.secret && !store.gun) { toast("LOCKED — walk over the A crate", 1.6); return; }
     if (!player.owned[w.id] && !w.start) { toast("NOT FOUND YET", 1.2); return; }
     player.wep = i;
   }
@@ -424,13 +480,16 @@
     for (var i = 0; i < L.plats.length; i++) plats.push({ x: L.plats[i].x, y: L.plats[i].y, w: L.plats[i].w, h: L.plats[i].h });
     spawnMarks = [];
     for (i = 0; i < L.spawns.length; i++) spawnMarks.push({ type: L.spawns[i].type, x: L.spawns[i].x, done: false });
-    crate = L.crate ? { x: L.crate.x, y: L.crate.y, w: 44, h: 44, hp: 30, live: true } : null;
+    crate = L.crate ? { x: L.crate.x, y: L.crate.y, w: 44, h: 44, live: true } : null;
     pads = [];
     var list = L.datapads || [];
     for (i = 0; i < list.length; i++) pads.push({ x: list[i].x, y: list[i].y, w: 28, h: 18, id: list[i].id, got: false });
     wepDrops = [];
     var pk = L.pickups || [];
-    for (i = 0; i < pk.length; i++) wepDrops.push({ x: pk[i].x, y: pk[i].y, w: 30, h: 18, wep: pk[i].wep, got: false });
+    for (i = 0; i < pk.length; i++) wepDrops.push({ x: pk[i].x, y: pk[i].y, w: 36, h: 22, wep: pk[i].wep, got: false });
+    beacons = [];
+    var bk = L.beacons || [];
+    for (i = 0; i < bk.length; i++) beacons.push({ x: bk[i].x, y: bk[i].y, w: 36, h: 28, drop: bk[i].drop || ["johnson"], got: false });
   }
 
   function startLevel(n, fromCheck) {
@@ -445,6 +504,10 @@
       player.x = 180; player.y = GROUND - player.h; player.vx = 0; player.vy = 0;
       player.face = 1; player.onG = true; player.aim = 0;
       camX = 0; camLock = 0;
+      if (n > 0) {
+        player.sh = player.maxSh;
+        player.hp = Math.max(player.hp, Math.round(player.maxHp * 0.7));
+      }
       if (!skull("iron")) checkpoint = { x: 180, cam: 0, hp: player.hp, sh: player.sh };
     }
     toast(L.name, 2.0);
@@ -457,13 +520,13 @@
     player.hp = player.maxHp; player.sh = player.maxSh; player.lastHit = -99;
     player.wep = 0; player.cool = 0; player.heat = 0; player.over = false;
     player.inv = 0; player.face = 1; player.onG = true; player.aim = 0; player.muzzle = 0;
-    player.owned = emptyOwned(); player.ammo = emptyAmmo();
+    player.owned = emptyOwned(); player.ammo = emptyAmmo(); player._ck = {};
     if (store.suit && player.suit === "olive") player.suit = "austin";
     score = 0; won = false; pendingWin = 0; pendingBoss = 0; pendingLevel = -1;
     crestSpawned = false; shieldChime = false; beams.length = 0;
     camX = 0; camLock = 0; shake = 0; hitStop = 0; hitFlash = 0;
     jumpHeld = false; jumpWas = false; jumpBuf = 0; coyote = 0; thrusterUsed = false;
-    nades = diff().nades; cook = 0; cooking = false; checkpoint = null;
+    nades = diff().nades; cook = 0; cooking = false; checkpoint = null; pickupHinted = false;
     bullets.killAll(); particles.killAll(); enemies.length = 0; pickups.length = 0;
     marines.length = 0; johnson = null; pelican = null;
     syncSuitUI();
@@ -478,15 +541,17 @@
   function maybeCheckpoint() {
     var L = currentLevel();
     var marks = L.checkpoints || [];
+    if (!player._ck) player._ck = {};
     if (skull("iron") || !marks.length) return;
     if (diff().id === "legendary") return;
     if (diff().id === "heroic" && marks.length) {
-      if (!player._heroCheck && player.x > marks[0]) { player._heroCheck = true; saveCheckpoint(); }
+      var hk = "h" + levelIdx;
+      if (!player._ck[hk] && player.x > marks[0]) { player._ck[hk] = true; saveCheckpoint(); }
       return;
     }
     for (var i = 0; i < marks.length; i++) {
-      var key = "_ck" + i;
-      if (!player[key] && player.x > marks[i]) { player[key] = true; saveCheckpoint(); }
+      var key = levelIdx + ":" + i;
+      if (!player._ck[key] && player.x > marks[i]) { player._ck[key] = true; saveCheckpoint(); }
     }
   }
 
@@ -507,9 +572,16 @@
     if (pendingLevel >= 0 || pendingWin || pendingBoss || state !== "play") return;
     if (!levelCleared()) return;
     score += 500;
-    pendingLevel = 0;
-    nextLevelAt = performance.now() / 1000 + 0.9;
-    toast("SECTOR CLEAR", 1.2);
+    var next = levelIdx + 1;
+    if (next < LEVELS.length) {
+      pendingLevel = next;
+      nextLevelAt = performance.now() / 1000 + 0.75;
+      toast("SECTOR CLEAR", 1.2);
+    } else {
+      pendingWin = 1;
+      winAt = performance.now() / 1000 + 0.9;
+      toast("SPIRE CLEAR", 1.4);
+    }
     beep(330, 0.1, "square", 0.05, 520);
   }
 
@@ -579,17 +651,30 @@
       confetti(e.x + e.w / 2, e.y + e.h / 2);
       punch(0.02, 0.08, 4, 1);
     } else {
-      var cols = bossKill ? ["#f6e2a0", "#7cf0ff", "#c084fc", "#fff"] : e.type === "reaver" ? ["#c084fc", "#7cf0ff", "#fff"] : e.type === "stinger" ? ["#5eead4", "#fff", "#f0b429"] : ["#fb923c", "#fde68a", "#fff"];
+      var cols = bossKill ? ["#f6e2a0", "#7cf0ff", "#c084fc", "#fff"] : (e.type === "crawler" || e.type === "flood" || e.type === "carrier") ? ["#86efac", "#4d7c0f", "#fff"] : e.type === "reaver" ? ["#c084fc", "#7cf0ff", "#fff"] : e.type === "stinger" || e.type === "turret" ? ["#5eead4", "#fff", "#f0b429"] : ["#fb923c", "#fde68a", "#fff"];
       burst(e.x + e.w / 2, e.y + e.h / 2, bossKill ? 52 : 22, cols, bossKill ? 420 : 300, bossKill ? 0.85 : 0.55);
       punch(bossKill ? 0.08 : 0.034, bossKill ? 0.22 : 0.1, bossKill ? 10 : 5, 1);
     }
     noise(bossKill ? 0.22 : 0.12, bossKill ? 0.1 : 0.07);
     if (Math.random() < 0.22) pickups.push({ x: e.x + 8, y: e.y, w: 22, h: 22, vy: -140, kind: "ammo" });
     enemies.splice(idx, 1);
+    if (e.type === "carrier") {
+      burstCrawlers(e);
+    }
     if (bossKill) {
-      pendingWin = 1; winAt = performance.now() / 1000 + 1.7;
+      pendingWin = 1; winAt = performance.now() / 1000 + 1.2;
       toast("TARTARUS DOWN", 2.2); shake = Math.max(shake, 22); beep(98, 0.2, "sawtooth", 0.08, 40);
     } else maybeAdvanceLevel();
+  }
+  function burstCrawlers(from) {
+    for (var n = 0; n < 2; n++) {
+      spawnEnemy({ type: "crawler", x: from.x + n * 32 - 8 });
+      var c = enemies[enemies.length - 1];
+      if (!c) continue;
+      c.y = Math.min(GROUND - c.h, from.y + from.h - c.h);
+      c.vy = -220;
+    }
+    toast("CARRIER BURST", 0.9);
   }
 
   function splashAt(x, y, r, dmg, friendly) {
@@ -819,10 +904,6 @@
         if (dead) killEnemy(hits[n].e, hits[n].i);
         pierced++; if (pierced >= 2) break;
       }
-      if (crate && crate.live) {
-        var ch = segHitAABB(x0, y0, x1, y1, crate.x, crate.y, crate.w, crate.h);
-        if (ch && ch.t <= bestT + 0.02) { crate.hp -= w.dmg; if (pierced === 0) { hitX = ch.x; hitY = ch.y; } }
-      }
       beams.push({ x0: x0, y0: y0, x1: hitX, y1: hitY, life: 0.16, max: 0.16, color: w.color });
       beep(740, 0.08, "square", 0.06, 180); return;
     }
@@ -866,7 +947,6 @@
         }
       }
     }
-    if (crate && crate.live && Math.hypot(crate.x + 22 - ox, crate.y + 22 - oy) < reach) { crate.hp -= 20; hit = true; }
     if (hit) {
       if (skull("blackeye")) {
         player.sh = Math.min(player.maxSh, player.sh + player.maxSh * 0.55);
@@ -901,7 +981,7 @@
     b.vx = dx / len * spd; b.vy = dy / len * spd;
     b.r = e.type === "reaver" ? 6 : 5; b.life = 2.2; b.dmg = e.shotDmg || 10;
     b.friendly = 0; b.homing = 0; b.kind = "enemy"; b.splash = 0;
-    b.color = e.type === "stinger" ? "#5eead4" : e.type === "reaver" ? "#c084fc" : "#fb923c";
+    b.color = e.type === "stinger" || e.type === "turret" ? "#5eead4" : e.type === "reaver" ? "#c084fc" : e.type === "carrier" ? "#86efac" : "#fb923c";
   }
 
   function tryJump() {
@@ -931,6 +1011,14 @@
       if (a.x + a.w * 0.5 > w.x && a.x < w.x + w.w && a.y + a.h > w.y && a.y < w.y + w.h) return w;
     }
     return null;
+  }
+  function applyWellAccel(a, dt) {
+    var well = inWell(a);
+    if (!well) return;
+    var mode = well.mode || "lift";
+    if (mode === "flip") a.vy -= 2860 * dt;
+    else if (mode === "low") a.vy -= 1280 * dt;
+    else a.vy -= 2200 * dt;
   }
 
   function nearestEnemy(px, py) {
@@ -965,7 +1053,7 @@
       else if (ev.type === "wepCycle") cycleWep();
       else if (ev.type === "wepRadial") showRadial();
       else if (ev.type === "wep") setWep(ev.data);
-      else if (ev.type === "interact") readPad();
+      else if (ev.type === "interact") { /* walk-over collectibles; USE unused */ }
       else if (ev.type === "pause") togglePause();
       else if (ev.type === "key") onKonami(ev.data);
       else if (ev.type === "fire" && state === "play") fireWeapon();
@@ -984,7 +1072,7 @@
       if (Math.abs(mv.ax) > 0.08) player.face = mv.ax > 0 ? 1 : -1;
     } else if (mv.mag > 0.18 && Math.abs(mv.mx) > 0.12) {
       player.face = mv.mx > 0 ? 1 : -1;
-      if (mv.am < 0.12) player.aim = mv.mx > 0 ? 0 : Math.PI;
+      player.aim = mv.mx > 0 ? 0 : Math.PI;
     }
     if (input.settings.aimAssist && mv.am > 0.2) {
       var ne = nearestEnemy(player.x + player.w / 2, player.y + 40);
@@ -1014,9 +1102,9 @@
     player.vx = clamp(player.vx, -maxS, maxS);
     var rising = player.vy < 0 && jumpHeld;
     player.vy += (rising ? 1180 : 1760) * dt;
-    var well = inWell(player);
-    if (well) player.vy -= 2200 * dt;
+    applyWellAccel(player, dt);
     if (player.vy > 980) player.vy = 980;
+    if (player.vy < -980) player.vy = -980;
 
     var wasG = player.onG;
     player.x += player.vx * dt; player.y += player.vy * dt; player.onG = false;
@@ -1044,11 +1132,11 @@
     if (mv.fire) fireWeapon();
 
     if (pendingLevel >= 0 && t >= nextLevelAt) {
-      if (state === "play") beginOutro();
+      if (state === "play") beginBridge(pendingLevel);
       else pendingLevel = -1;
     }
     if (pendingBoss && t >= nextBossAt) { if (state === "play") spawnCrestlord(); else pendingBoss = 0; }
-    if (pendingWin && t >= winAt) { if (state === "play") finishWin(); else pendingWin = 0; }
+    if (pendingWin && t >= winAt) { if (state === "play") beginOutro(); else pendingWin = 0; }
     if (pendingPelican && t >= pelicanAt) { callPelican(pendingPelican, player.x + 260); pendingPelican = null; }
     var Lnow = currentLevel();
     if (!midDropped && Lnow.midDropAt && player.x > Lnow.midDropAt && Lnow.midDrop && Lnow.midDrop.length) {
@@ -1067,16 +1155,7 @@
     maybeAdvanceLevel();
     maybeCheckpoint();
 
-    nearbyPad = null;
-    for (i = 0; i < pads.length; i++) {
-      if (!pads[i].got && aabb(player, { x: pads[i].x - 20, y: pads[i].y - 20, w: 68, h: 50 })) nearbyPad = pads[i];
-    }
-    input.setInteract(!!nearbyPad);
-
-    for (i = wepDrops.length - 1; i >= 0; i--) {
-      var wd = wepDrops[i];
-      if (!wd.got && aabb(player, wd)) { wd.got = true; unlockWep(wd.wep, true); }
-    }
+    collectWalkOvers();
 
     for (i = enemies.length - 1; i >= 0; i--) {
       var e = enemies[i];
@@ -1091,6 +1170,30 @@
         updateVorrak(e, dt, player.x + player.w / 2 - ecx);
         e.x += (e.kbx || 0) * dt; e.x = clamp(e.x, 40, worldW - 120);
         if (aabb(e, player) && !skull("camo")) hurtPlayer(e.touchDmg || 20);
+      } else if (e.type === "crawler" || e.type === "flood") {
+        e.vx = e.face * e.spd;
+        e.vy += 1500 * dt;
+        e.x += e.vx * dt + (e.kbx || 0) * dt;
+        e.y += e.vy * dt;
+        applyWellAccel(e, dt);
+        collideActor(e);
+      } else if (e.type === "carrier") {
+        var cadx = Math.abs(dx);
+        e.vx = e.face * e.spd;
+        e.vy += 1500 * dt;
+        e.x += e.vx * dt + (e.kbx || 0) * dt;
+        e.y += e.vy * dt;
+        applyWellAccel(e, dt);
+        collideActor(e);
+        e.cool -= dt;
+        if (e.cool <= 0 && cadx < e.range + 40) { enemyShoot(e); e.cool = 1.55; }
+      } else if (e.type === "turret") {
+        e.vx = 0;
+        e.vy += 1500 * dt;
+        e.y += e.vy * dt;
+        collideActor(e);
+        e.cool -= dt;
+        if (e.cool <= 0 && Math.abs(dx) < e.range) { enemyShoot(e); e.cool = 0.72; }
       } else if (e.type === "stinger") {
         e.baseY += (e.kby || 0) * dt; e.y = e.baseY + Math.sin(e.t * 2.6) * 36;
         e.x += Math.sin(e.t * 1.1) * 70 * dt + Math.sign(dx) * 34 * dt + (e.kbx || 0) * dt;
@@ -1104,7 +1207,7 @@
         else e.vx = (e.type === "reaver" ? Math.sin(e.t * 3) * e.spd : 0);
         e.vy += 1500 * dt;
         e.x += e.vx * dt + ((e.hit > 0.06) ? 0 : (e.kbx || 0) * dt);
-        e.y += e.vy * dt; collideActor(e);
+        e.y += e.vy * dt; applyWellAccel(e, dt); collideActor(e);
         if (e.type === "reaver" && e.onG && tgt.y + 20 < e.y && Math.random() < 0.01) e.vy = -520;
         e.cool -= dt;
         if (e.cool <= 0 && adx < e.range + 40) { enemyShoot(e); e.cool = e.type === "reaver" ? 0.85 : 1.45; }
@@ -1160,9 +1263,6 @@
             return false;
           }
         }
-        if (crate && crate.live && b.x + b.r > crate.x && b.x - b.r < crate.x + crate.w && b.y + b.r > crate.y && b.y - b.r < crate.y + crate.h) {
-          crate.hp -= b.dmg; burst(b.x, b.y, 5, ["#f6e2a0", "#fff"], 120, 0.2); return false;
-        }
       } else {
         var hitM = null;
         for (var mi = 0; mi < marines.length; mi++) {
@@ -1177,22 +1277,21 @@
       return true;
     });
 
-    if (crate && crate.live && crate.hp <= 0) {
-      crate.live = false;
-      pickups.push({ x: crate.x + 8, y: crate.y, w: 28, h: 28, vy: -180, kind: "gun" });
-      burst(crate.x + 22, crate.y + 22, 24, ["#f6e2a0", "#ffb020", "#fff"], 280, 0.5);
-      toast("CRATE OPEN — GRAB IT", 2);
-    }
     for (i = pickups.length - 1; i >= 0; i--) {
       var p = pickups[i];
       p.vy += 900 * dt; p.y += p.vy * dt;
-      if (p.y + p.h > GROUND) { p.y = GROUND - p.h; p.vy = 0; }
+      if (p.y + p.h > GROUND) { p.y = GROUND - p.h; p.vy *= -0.12; if (Math.abs(p.vy) < 40) p.vy = 0; }
+      p.vx = 0;
       if (aabb(p, player)) {
         if (p.kind === "gun") { unlockGun(); unlockSuit(); }
         else if (p.kind === "ammo") {
           var a = player.ammo[player.wep], w = WEPS[player.wep];
           a.reserve = Math.min(w.reserve * 2, a.reserve + Math.max(4, Math.round(w.mag * 0.8)));
           toast("AMMO", 0.8);
+        } else if (p.kind === "nade" || p.kind === "nades") {
+          nades += 1; toast("GRENADE", 0.8);
+        } else if (p.kind === "shield") {
+          player.sh = player.maxSh; toast("SHIELDS", 0.8);
         }
         pickups.splice(i, 1);
       }
@@ -1453,8 +1552,8 @@
   function enemySprite(e) {
     if (e.type === "ember") return (emberReady && emberImg.naturalWidth) ? emberImg : null;
     if (e.type === "reaver") return (reaverReady && reaverImg.naturalWidth) ? reaverImg : null;
-    if (e.type === "stinger") return tintStinger();
-    if (e.type === "flood" || e.type === "carrier") return tintFlood();
+    if (e.type === "stinger" || e.type === "turret") return tintStinger();
+    if (e.type === "flood" || e.type === "crawler" || e.type === "carrier") return tintFlood();
     return null;
   }
   function drawEnemy(e) {
@@ -1466,15 +1565,15 @@
     if (e.hit > 0) ctx.globalAlpha = 0.5;
     var spr = enemySprite(e);
     if (spr) {
-      var dh = e.type === "reaver" || e.type === "carrier" ? 126 : e.type === "stinger" ? 52 : 70;
+      var dh = e.type === "carrier" ? 148 : e.type === "reaver" ? 126 : e.type === "crawler" || e.type === "flood" ? 44 : e.type === "stinger" ? 52 : e.type === "turret" ? 64 : 70;
       var sw = spr.naturalWidth || spr.width, sh = spr.naturalHeight || spr.height, dw = dh * sw / sh;
       ctx.save(); ctx.scale(-1, 1); ctx.drawImage(spr, -dw * 0.48, -dh, dw, dh); ctx.restore();
     } else {
-      ctx.fillStyle = e.type === "flood" || e.type === "carrier" ? "#4d7c0f" : e.type === "reaver" ? "#6d28d9" : "#c45a18";
+      ctx.fillStyle = e.type === "flood" || e.type === "crawler" || e.type === "carrier" ? "#4d7c0f" : e.type === "reaver" ? "#6d28d9" : e.type === "turret" ? "#134e4a" : "#c45a18";
       rr(ctx, -16, -40, 32, 36, 8); ctx.fill();
     }
     if (input.settings.colorblind) {
-      ctx.strokeStyle = e.type === "flood" || e.type === "carrier" ? "#86efac" : e.type === "reaver" ? "#c084fc" : "#fb923c";
+      ctx.strokeStyle = e.type === "flood" || e.type === "crawler" || e.type === "carrier" ? "#86efac" : e.type === "reaver" ? "#c084fc" : e.type === "turret" ? "#5eead4" : "#fb923c";
       ctx.lineWidth = 3; ctx.strokeRect(-e.w / 2 - 4, -e.h - 4, e.w + 8, e.h + 8);
     }
     ctx.restore();
@@ -1506,9 +1605,12 @@
     for (var wi = 0; wi < wells.length; wi++) {
       var well = wells[wi];
       var wg = ctx.createLinearGradient(well.x, well.y, well.x, well.y + well.h);
-      wg.addColorStop(0, "rgba(94,234,212,0.08)"); wg.addColorStop(1, "rgba(56,189,248,0.22)");
+      if (well.mode === "flip") { wg.addColorStop(0, "rgba(196,181,253,0.16)"); wg.addColorStop(1, "rgba(126,34,206,0.28)"); }
+      else if (well.mode === "low") { wg.addColorStop(0, "rgba(125,211,252,0.08)"); wg.addColorStop(1, "rgba(14,116,144,0.20)"); }
+      else { wg.addColorStop(0, "rgba(94,234,212,0.08)"); wg.addColorStop(1, "rgba(56,189,248,0.22)"); }
       ctx.fillStyle = wg; ctx.fillRect(well.x, well.y, well.w, well.h);
-      ctx.strokeStyle = "rgba(125,211,252,0.35)"; ctx.strokeRect(well.x, well.y, well.w, well.h);
+      ctx.strokeStyle = well.mode === "flip" ? "rgba(196,181,253,0.4)" : "rgba(125,211,252,0.35)";
+      ctx.strokeRect(well.x, well.y, well.w, well.h);
     }
     ctx.fillStyle = "rgba(6,4,3,0.42)"; ctx.fillRect(0, GROUND + 2, worldW, H - GROUND + 40);
     ctx.fillStyle = theme === "flood" ? "rgba(40,60,12,0.55)" : "rgba(28,18,10,0.55)";
@@ -1519,30 +1621,44 @@
       ctx.fillStyle = "#4a453c"; rr(ctx, p.x, p.y, p.w, p.h, 5); ctx.fill();
       ctx.fillStyle = "rgba(255,200,120,0.28)"; ctx.fillRect(p.x + 2, p.y, p.w - 4, 3);
     }
+    function glowDisk(x, y, r, rgba) {
+      ctx.fillStyle = rgba;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    var pulse = 0.5 + Math.sin(performance.now() / 180) * 0.5;
     if (crate && crate.live) {
-      var pulse = 0.5 + Math.sin(performance.now() / 180) * 0.5;
-      ctx.fillStyle = "rgba(255,176,32," + (0.18 + pulse * 0.2) + ")";
-      ctx.beginPath(); ctx.arc(crate.x + 22, crate.y + 22, 36, 0, Math.PI * 2); ctx.fill();
+      glowDisk(crate.x + 22, crate.y + 22, 40, "rgba(255,176,32," + (0.22 + pulse * 0.22) + ")");
       ctx.fillStyle = "#c9a24a"; rr(ctx, crate.x, crate.y, crate.w, crate.h, 6); ctx.fill();
+      ctx.strokeStyle = "#ffe08a"; ctx.lineWidth = 2; rr(ctx, crate.x, crate.y, crate.w, crate.h, 6); ctx.stroke();
       ctx.fillStyle = "#1a1008"; ctx.font = "bold 22px Impact, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("A", crate.x + 22, crate.y + 32);
     }
     for (i = 0; i < pads.length; i++) {
       if (pads[i].got) continue;
+      glowDisk(pads[i].x + 14, pads[i].y + 9, 22, "rgba(125,211,252," + (0.2 + pulse * 0.2) + ")");
       ctx.fillStyle = "#7dd3fc"; rr(ctx, pads[i].x, pads[i].y, pads[i].w, pads[i].h, 3); ctx.fill();
       ctx.fillStyle = "#0c4a6e"; ctx.font = "bold 11px Impact, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.fillText("PAD", pads[i].x + 14, pads[i].y + 13);
     }
     for (i = 0; i < wepDrops.length; i++) {
       if (wepDrops[i].got) continue;
-      ctx.fillStyle = "#e8b43a"; rr(ctx, wepDrops[i].x, wepDrops[i].y, 30, 18, 3); ctx.fill();
+      glowDisk(wepDrops[i].x + 18, wepDrops[i].y + 11, 26, "rgba(232,180,58," + (0.22 + pulse * 0.2) + ")");
+      ctx.fillStyle = "#e8b43a"; rr(ctx, wepDrops[i].x, wepDrops[i].y, wepDrops[i].w, wepDrops[i].h, 4); ctx.fill();
       ctx.fillStyle = "#1a1008"; ctx.font = "bold 10px Impact, system-ui, sans-serif"; ctx.textAlign = "center";
-      ctx.fillText((wepDrops[i].wep || "GUN").slice(0, 5).toUpperCase(), wepDrops[i].x + 15, wepDrops[i].y + 13);
+      ctx.fillText((wepDrops[i].wep || "GUN").slice(0, 5).toUpperCase(), wepDrops[i].x + wepDrops[i].w / 2, wepDrops[i].y + 15);
+    }
+    for (i = 0; i < beacons.length; i++) {
+      if (beacons[i].got) continue;
+      glowDisk(beacons[i].x + 18, beacons[i].y + 14, 28, "rgba(94,234,212," + (0.22 + pulse * 0.22) + ")");
+      ctx.fillStyle = "#5eead4"; rr(ctx, beacons[i].x, beacons[i].y, beacons[i].w, beacons[i].h, 6); ctx.fill();
+      ctx.fillStyle = "#042f2e"; ctx.font = "bold 9px Impact, system-ui, sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("BEACON", beacons[i].x + 18, beacons[i].y + 18);
     }
     for (i = 0; i < pickups.length; i++) {
       var pk = pickups[i];
-      ctx.fillStyle = pk.kind === "ammo" ? "#86efac" : "#ffb020";
+      glowDisk(pk.x + 14, pk.y + 14, 20, "rgba(134,239,172," + (0.2 + pulse * 0.18) + ")");
+      ctx.fillStyle = pk.kind === "ammo" ? "#86efac" : pk.kind === "shield" ? "#5eead4" : "#ffb020";
       ctx.beginPath(); ctx.arc(pk.x + 14, pk.y + 14, 14, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#1a1008"; ctx.font = "bold 12px Impact, system-ui, sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(pk.kind === "ammo" ? "+" : "A", pk.x + 14, pk.y + 18);
+      ctx.fillText(pk.kind === "ammo" ? "+" : pk.kind === "nade" || pk.kind === "nades" ? "G" : pk.kind === "shield" ? "S" : "A", pk.x + 14, pk.y + 18);
     }
     for (i = 0; i < enemies.length; i++) drawEnemy(enemies[i]);
     for (i = 0; i < marines.length; i++) drawMarine(marines[i]);
@@ -1762,7 +1878,7 @@
     box.innerHTML = "";
     var stub = document.getElementById("campaignStub");
     if (stub && D.CAMPAIGN) {
-      stub.textContent = "Playable now: Crimson Approach. Coming next: Outer Ring, Gravity Well, Infection Vector, Spire’s Heart, Core Overload.";
+      stub.textContent = "Full campaign: Crimson Approach → Outer Ring → Gravity Well → Infection Vector → Spire’s Heart → Core Overload.";
     }
     D.SKULLS.forEach(function (s) {
       var b = document.createElement("button");
@@ -1785,11 +1901,26 @@
     cineLine = 0; cineWait = 0;
     state = "cine"; input.setLive(false); panel.classList.remove("show");
   }
+  function beginBridge(next) {
+    cineKind = "bridge";
+    cine = (D.CINE.bridges && D.CINE.bridges[next]) || D.CINE.outro;
+    cineLine = 0; cineWait = 0;
+    pendingLevel = next;
+    state = "cine"; input.setLive(false); panel.classList.remove("show");
+  }
   function advanceCine() {
     if (!cine) return;
     if (cineLine + 1 < cine.lines.length) { cineLine += 1; return; }
     cine = null;
     if (cineKind === "outro") { finishWin(); return; }
+    if (cineKind === "bridge") {
+      var n = pendingLevel;
+      pendingLevel = -1;
+      startLevel(n);
+      state = "play"; input.setLive(true);
+      sayCortana((currentLevel() && currentLevel().name) ? ("Dropping — " + currentLevel().name + ".") : "Keep moving.", 2.4);
+      return;
+    }
     resetRunIfNeeded(0);
     startLevel(0);
     state = "play"; input.setLive(true);
@@ -1831,11 +1962,9 @@
     wepRadial.classList.add("show");
   }
   function readPad() {
-    if (!nearbyPad || nearbyPad.got) return;
-    nearbyPad.got = true;
-    var info = D.PADS[nearbyPad.id];
-    if (info) { toast(info.title, 2.2); sayCortana(info.body, 3.4); }
-    input.setInteract(false);
+    for (var i = 0; i < pads.length; i++) {
+      if (!pads[i].got && aabb(player, pads[i])) { takePad(pads[i]); return; }
+    }
   }
   function onKonami(code) {
     if (code === "w" || code === "W") code = "ArrowUp";
@@ -1885,7 +2014,7 @@
   resumeBtn.addEventListener("touchstart", function (e) { e.preventDefault(); if (state === "pause") togglePause(); }, { passive: false });
   document.getElementById("suits").addEventListener("click", function (e) {
     var b = e.target.closest(".suit"); if (!b) return;
-    if (b.dataset.suit === "austin" && !store.suit) { toast("Crack the A crate", 2); return; }
+    if (b.dataset.suit === "austin" && !store.suit) { toast("Walk over the A crate", 2); return; }
     player.suit = b.dataset.suit; syncSuitUI();
   });
   document.getElementById("handBtn").addEventListener("click", function () {
@@ -1918,6 +2047,10 @@
   if (store.suit) austinSuitBtn.classList.remove("lock");
   syncSettingsUI();
   fit();
+  SS.debug = {
+    startLevel: startLevel,
+    setPlay: function () { state = "play"; input.setLive(true); brief.classList.remove("show"); panel.classList.remove("show"); }
+  };
   requestAnimationFrame(frame);
 })();
 
