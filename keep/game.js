@@ -1,6 +1,6 @@
 'use strict';
 
-/* KEEP — Salix Labs. Original medieval tower defense. */
+/* THE LAST DEFENSE OF CAMELOT — Salix Labs. Original medieval tower defense. */
 
 const W = 1280, H = 720;
 const $ = (s) => document.querySelector(s);
@@ -47,59 +47,110 @@ const TOWERS = {
 };
 
 const KINDS = {
-  runner: { name: 'Scramblekin', hp: 24, spd: 64, gold: 8, armor: 0, fly: false, r: 11, leak: 1, color: '#4a8a32' },
-  brute: { name: 'Oakplate Brute', hp: 96, spd: 30, gold: 18, armor: 5, fly: false, r: 16, leak: 1, color: '#6a5340' },
-  bat: { name: 'Nightwing', hp: 18, spd: 80, gold: 12, armor: 0, fly: true, r: 10, leak: 1, color: '#3a2a48' },
-  boss: { name: 'Marrow the Gatebreaker', hp: 1480, spd: 21, gold: 90, armor: 7, fly: false, r: 30, leak: 1, color: '#5a2028' }
+  raider: { name: 'Thorn-Raider', hp: 24, spd: 66, gold: 8, armor: 0, fly: false, air: false, r: 11, leak: 1, color: '#2a2420' },
+  arms: { name: 'Blackthorn Man-at-Arms', hp: 92, spd: 31, gold: 16, armor: 4, fly: false, air: false, r: 15, leak: 1, color: '#3a3430' },
+  knight: { name: 'Corrupted Knight', hp: 128, spd: 34, gold: 22, armor: 7, fly: false, air: false, r: 16, leak: 1, elite: true, color: '#2e2824' },
+  wight: { name: 'Thorn-Wight', hp: 118, spd: 22, gold: 20, armor: 3, fly: false, air: false, r: 17, leak: 1, color: '#1a2418' },
+  hound: { name: "Morgan's Hound", hp: 20, spd: 86, gold: 12, armor: 0, fly: true, air: false, r: 10, leak: 1, color: '#141010' },
+  champ: { name: 'Thorned Champion', hp: 380, spd: 26, gold: 40, armor: 8, fly: false, air: false, r: 22, leak: 2, elite: true, color: '#241810' },
+  drake: { name: 'Thorn-Drake', hp: 1480, spd: 20, gold: 90, armor: 8, fly: false, air: false, r: 32, leak: 1, boss: true, elite: true, color: '#1a2014' },
+  mordred: { name: 'Shade of Mordred', hp: 1680, spd: 21, gold: 110, armor: 6, fly: false, air: false, r: 28, leak: 1, boss: true, elite: true, color: '#1a1820' }
 };
 
-/* Veteran: +22% HP only. Night Gate path is ~2641px; Marrow walks it in ~108s.
-   A kit of heroes + barracks + stacked reinforcements + 2–3 towers still melts him
-   with a wide time margin. No extra speed or count — those would wall 5-pad Night Gate. */
+/* Veteran: +22% HP only — the 0.2.2 rule. No extra speed or count.
+   Map 1 is Standard-feel; later maps step up with gentler per-map HP than the old 3-map curve. */
 const VETERAN_HP = 1.22;
 
 const W1 = [
-  { title: 'Stirring in the Wood', packs: [{ k: 'runner', n: 8, gap: 0.70 }] },
-  { title: 'Heavy Footfalls', packs: [{ k: 'runner', n: 8, gap: 0.55 }, { k: 'brute', n: 2, gap: 1.5, wait: 3.2 }] },
-  { title: 'Something on the Wind', packs: [{ k: 'runner', n: 6, gap: 0.50 }, { k: 'bat', n: 6, gap: 0.55, wait: 2.0 }] },
-  { title: 'The Road Thickens', packs: [{ k: 'runner', n: 12, gap: 0.42 }, { k: 'brute', n: 4, gap: 1.1, wait: 2.2 }] },
-  { title: 'Night and Oak', packs: [{ k: 'bat', n: 8, gap: 0.42 }, { k: 'runner', n: 8, gap: 0.40, wait: 1.2 }, { k: 'brute', n: 3, gap: 1.2, wait: 4.0 }] },
-  { title: 'A Proper Row', packs: [{ k: 'runner', n: 16, gap: 0.34 }, { k: 'brute', n: 6, gap: 0.95, wait: 3.0 }] },
-  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 10, gap: 0.38 }, { k: 'bat', n: 6, gap: 0.48, wait: 1.6 }, { k: 'brute', n: 4, gap: 1.0, wait: 4.0 }] },
-  { title: 'Wings and Iron', packs: [{ k: 'bat', n: 12, gap: 0.36 }, { k: 'brute', n: 8, gap: 0.85, wait: 2.0 }, { k: 'runner', n: 10, gap: 0.34, wait: 5.0 }] },
-  { title: 'The Last Ordinary Hour', packs: [{ k: 'runner', n: 18, gap: 0.30 }, { k: 'brute', n: 8, gap: 0.72, wait: 2.0 }, { k: 'bat', n: 10, gap: 0.38, wait: 4.0 }] },
-  { title: 'Clear the Road', packs: [{ k: 'brute', n: 6, gap: 1.1, wait: 0 }, { k: 'runner', n: 14, gap: 0.34, wait: 2.0 }, { k: 'bat', n: 8, gap: 0.40, wait: 6.0 }] }
+  { title: 'The First Warning', packs: [{ k: 'raider', n: 8, gap: 0.70 }] },
+  { title: 'Militia, to the road', packs: [{ k: 'raider', n: 8, gap: 0.55 }, { k: 'arms', n: 2, gap: 1.5, wait: 3.2 }] },
+  { title: 'Ragged Cloaks', packs: [{ k: 'raider', n: 12, gap: 0.48 }, { k: 'arms', n: 2, gap: 1.3, wait: 2.4 }] },
+  { title: 'The Road Thickens', packs: [{ k: 'raider', n: 12, gap: 0.42 }, { k: 'arms', n: 4, gap: 1.1, wait: 2.2 }] },
+  { title: 'Thorn-Painted Faces', packs: [{ k: 'raider', n: 10, gap: 0.40 }, { k: 'arms', n: 3, gap: 1.2, wait: 2.0 }, { k: 'raider', n: 6, gap: 0.38, wait: 5.0 }] },
+  { title: 'A Proper Row', packs: [{ k: 'raider', n: 16, gap: 0.34 }, { k: 'arms', n: 6, gap: 0.95, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'raider', n: 10, gap: 0.38 }, { k: 'arms', n: 4, gap: 1.0, wait: 2.0 }, { k: 'raider', n: 8, gap: 0.36, wait: 5.0 }] },
+  { title: 'Iron in the Lane', packs: [{ k: 'arms', n: 8, gap: 0.85 }, { k: 'raider', n: 12, gap: 0.34, wait: 2.0 }] },
+  { title: 'The Last Ordinary Hour', packs: [{ k: 'raider', n: 18, gap: 0.30 }, { k: 'arms', n: 8, gap: 0.72, wait: 2.0 }] },
+  { title: 'Clear the Village Road', packs: [{ k: 'arms', n: 6, gap: 1.1 }, { k: 'raider', n: 14, gap: 0.34, wait: 2.0 }, { k: 'arms', n: 4, gap: 0.9, wait: 6.0 }] }
 ];
 const W2 = [
-  { title: 'Wet Boots', packs: [{ k: 'runner', n: 10, gap: 0.50 }, { k: 'brute', n: 2, gap: 1.2, wait: 2.0 }] },
-  { title: 'The Cut Narrows', packs: [{ k: 'runner', n: 12, gap: 0.40 }, { k: 'bat', n: 6, gap: 0.45, wait: 1.4 }] },
-  { title: 'Oak in the Water', packs: [{ k: 'brute', n: 5, gap: 0.85 }, { k: 'runner', n: 10, gap: 0.36, wait: 1.6 }] },
-  { title: 'A Bad Wind', packs: [{ k: 'bat', n: 12, gap: 0.32 }, { k: 'brute', n: 4, gap: 0.9, wait: 2.0 }] },
-  { title: 'Shoulder to Shoulder', packs: [{ k: 'runner', n: 18, gap: 0.30 }, { k: 'brute', n: 6, gap: 0.75, wait: 2.2 }] },
-  { title: 'Both Banks', packs: [{ k: 'bat', n: 10, gap: 0.30 }, { k: 'runner', n: 12, gap: 0.28, wait: 1.0 }, { k: 'brute', n: 5, gap: 0.8, wait: 3.0 }] },
-  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 14, gap: 0.28 }, { k: 'bat', n: 10, gap: 0.32, wait: 1.2 }, { k: 'brute', n: 6, gap: 0.7, wait: 3.2 }] },
-  { title: 'No Dry Ground', packs: [{ k: 'brute', n: 8, gap: 0.65 }, { k: 'runner', n: 16, gap: 0.26, wait: 1.5 }, { k: 'bat', n: 10, gap: 0.30, wait: 4.0 }] },
-  { title: 'The Ford Breaks', packs: [{ k: 'runner', n: 20, gap: 0.24 }, { k: 'brute', n: 8, gap: 0.60, wait: 1.8 }, { k: 'bat', n: 12, gap: 0.28, wait: 3.5 }] },
-  { title: 'Hold the Crossing', packs: [{ k: 'brute', n: 10, gap: 0.55 }, { k: 'runner', n: 16, gap: 0.24, wait: 1.2 }, { k: 'bat', n: 12, gap: 0.26, wait: 5.0 }] }
+  { title: 'Wet Boots', packs: [{ k: 'raider', n: 10, gap: 0.50 }, { k: 'arms', n: 2, gap: 1.2, wait: 2.0 }] },
+  { title: 'The Ford Narrows', packs: [{ k: 'raider', n: 12, gap: 0.40 }, { k: 'arms', n: 4, gap: 0.95, wait: 1.8 }] },
+  { title: 'Both Banks', merlin: true, packs: [{ k: 'arms', n: 5, gap: 0.85 }, { k: 'raider', n: 10, gap: 0.36, wait: 1.6 }] },
+  { title: 'A Bad Current', packs: [{ k: 'raider', n: 14, gap: 0.32 }, { k: 'arms', n: 5, gap: 0.85, wait: 2.0 }] },
+  { title: 'Shoulder to Shoulder', packs: [{ k: 'raider', n: 18, gap: 0.30 }, { k: 'arms', n: 6, gap: 0.75, wait: 2.2 }] },
+  { title: 'Hold the Stones', packs: [{ k: 'arms', n: 8, gap: 0.70 }, { k: 'raider', n: 12, gap: 0.28, wait: 1.2 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'raider', n: 14, gap: 0.28 }, { k: 'arms', n: 6, gap: 0.7, wait: 1.8 }, { k: 'raider', n: 8, gap: 0.30, wait: 4.0 }] },
+  { title: 'No Dry Ground', packs: [{ k: 'arms', n: 8, gap: 0.65 }, { k: 'raider', n: 16, gap: 0.26, wait: 1.5 }] },
+  { title: 'The Ford Breaks', packs: [{ k: 'raider', n: 20, gap: 0.24 }, { k: 'arms', n: 8, gap: 0.60, wait: 1.8 }] },
+  { title: 'Hold the Crossing', packs: [{ k: 'arms', n: 10, gap: 0.55 }, { k: 'raider', n: 16, gap: 0.24, wait: 1.2 }, { k: 'arms', n: 4, gap: 0.7, wait: 5.0 }] }
 ];
 const W3 = [
-  { title: 'Dusk Banners', packs: [{ k: 'runner', n: 12, gap: 0.38 }, { k: 'bat', n: 8, gap: 0.36, wait: 1.0 }] },
-  { title: 'Iron First', packs: [{ k: 'brute', n: 6, gap: 0.70 }, { k: 'runner', n: 12, gap: 0.30, wait: 1.4 }] },
-  { title: 'Nightwings Close', packs: [{ k: 'bat', n: 16, gap: 0.26 }, { k: 'brute', n: 5, gap: 0.7, wait: 1.8 }] },
-  { title: 'The Snake Tightens', packs: [{ k: 'runner', n: 18, gap: 0.26 }, { k: 'brute', n: 7, gap: 0.58, wait: 1.6 }, { k: 'bat', n: 8, gap: 0.28, wait: 3.0 }] },
-  { title: 'No Soft Wave', packs: [{ k: 'brute', n: 8, gap: 0.55 }, { k: 'runner', n: 16, gap: 0.24, wait: 1.0 }, { k: 'bat', n: 12, gap: 0.24, wait: 3.2 }] },
-  { title: 'All Three Kinds', packs: [{ k: 'bat', n: 14, gap: 0.22 }, { k: 'runner', n: 16, gap: 0.22, wait: 0.8 }, { k: 'brute', n: 8, gap: 0.52, wait: 2.8 }] },
-  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'runner', n: 16, gap: 0.22 }, { k: 'bat', n: 14, gap: 0.22, wait: 1.0 }, { k: 'brute', n: 8, gap: 0.50, wait: 2.6 }] },
-  { title: 'The Gate Shudders', packs: [{ k: 'brute', n: 10, gap: 0.48 }, { k: 'runner', n: 18, gap: 0.20, wait: 1.2 }, { k: 'bat', n: 14, gap: 0.22, wait: 4.0 }] },
-  { title: 'Almost Night', packs: [{ k: 'runner', n: 22, gap: 0.18 }, { k: 'brute', n: 10, gap: 0.45, wait: 1.4 }, { k: 'bat', n: 16, gap: 0.20, wait: 3.2 }] },
-  { title: 'The Gatebreaker', packs: [{ k: 'boss', n: 1, gap: 0 }, { k: 'brute', n: 8, gap: 0.85, wait: 2.2 }, { k: 'runner', n: 16, gap: 0.22, wait: 1.5 }, { k: 'bat', n: 12, gap: 0.24, wait: 7.0 }] }
+  { title: 'Dust on the Stones', packs: [{ k: 'raider', n: 12, gap: 0.38 }, { k: 'arms', n: 4, gap: 0.9, wait: 1.4 }] },
+  { title: 'Fallen Banners', packs: [{ k: 'arms', n: 6, gap: 0.70 }, { k: 'raider', n: 12, gap: 0.30, wait: 1.4 }] },
+  { title: 'The First Betrayal', merlin: true, packs: [{ k: 'knight', n: 2, gap: 1.6 }, { k: 'raider', n: 10, gap: 0.32, wait: 1.2 }, { k: 'arms', n: 4, gap: 0.8, wait: 3.0 }] },
+  { title: 'The Mile Tightens', packs: [{ k: 'raider', n: 16, gap: 0.26 }, { k: 'knight', n: 3, gap: 1.3, wait: 1.6 }, { k: 'arms', n: 5, gap: 0.7, wait: 3.2 }] },
+  { title: 'No Soft Wave', packs: [{ k: 'arms', n: 8, gap: 0.55 }, { k: 'raider', n: 14, gap: 0.24, wait: 1.0 }, { k: 'knight', n: 3, gap: 1.1, wait: 3.2 }] },
+  { title: 'Jerky Knightly Skill', packs: [{ k: 'knight', n: 5, gap: 0.95 }, { k: 'raider', n: 12, gap: 0.24, wait: 1.0 }, { k: 'arms', n: 6, gap: 0.6, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'raider', n: 14, gap: 0.24 }, { k: 'knight', n: 4, gap: 1.0, wait: 1.2 }, { k: 'arms', n: 6, gap: 0.55, wait: 3.0 }] },
+  { title: 'The Road Remembers', packs: [{ k: 'knight', n: 6, gap: 0.80 }, { k: 'raider', n: 16, gap: 0.22, wait: 1.2 }, { k: 'arms', n: 6, gap: 0.55, wait: 4.0 }] },
+  { title: 'Almost the Woods', packs: [{ k: 'raider', n: 18, gap: 0.20 }, { k: 'arms', n: 8, gap: 0.50, wait: 1.4 }, { k: 'knight', n: 5, gap: 0.85, wait: 3.2 }] },
+  { title: 'Hold the Mile', packs: [{ k: 'knight', n: 6, gap: 0.75 }, { k: 'arms', n: 8, gap: 0.50, wait: 1.2 }, { k: 'raider', n: 16, gap: 0.20, wait: 3.0 }] }
+];
+const W4 = [
+  { title: 'The Light Thins', packs: [{ k: 'raider', n: 12, gap: 0.36 }, { k: 'wight', n: 2, gap: 1.8, wait: 2.0 }] },
+  { title: 'Grasping Roots', packs: [{ k: 'wight', n: 4, gap: 1.4 }, { k: 'raider', n: 10, gap: 0.32, wait: 1.2 }] },
+  { title: "Morgan's Whisper", merlin: true, packs: [{ k: 'hound', n: 6, gap: 0.40 }, { k: 'wight', n: 3, gap: 1.3, wait: 1.6 }, { k: 'arms', n: 4, gap: 0.8, wait: 3.0 }] },
+  { title: 'Thorn-Choked', packs: [{ k: 'wight', n: 5, gap: 1.1 }, { k: 'raider', n: 14, gap: 0.26, wait: 1.0 }, { k: 'hound', n: 6, gap: 0.36, wait: 3.2 }] },
+  { title: 'Green Eyes', packs: [{ k: 'hound', n: 10, gap: 0.30 }, { k: 'knight', n: 3, gap: 1.1, wait: 1.4 }, { k: 'wight', n: 3, gap: 1.2, wait: 3.4 }] },
+  { title: 'The Woods Close', packs: [{ k: 'wight', n: 6, gap: 0.95 }, { k: 'arms', n: 6, gap: 0.55, wait: 1.2 }, { k: 'hound', n: 8, gap: 0.28, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'raider', n: 12, gap: 0.24 }, { k: 'wight', n: 4, gap: 1.0, wait: 1.2 }, { k: 'hound', n: 8, gap: 0.28, wait: 3.0 }] },
+  { title: 'Papa’s Lane', packs: [{ k: 'hound', n: 12, gap: 0.26 }, { k: 'wight', n: 5, gap: 0.9, wait: 1.0 }, { k: 'knight', n: 4, gap: 0.85, wait: 3.2 }] },
+  { title: 'No Clean Shot', packs: [{ k: 'wight', n: 6, gap: 0.85 }, { k: 'raider', n: 16, gap: 0.22, wait: 1.0 }, { k: 'hound', n: 10, gap: 0.24, wait: 3.0 }] },
+  { title: 'Leave the Woods', packs: [{ k: 'wight', n: 7, gap: 0.80 }, { k: 'knight', n: 5, gap: 0.75, wait: 1.2 }, { k: 'hound', n: 10, gap: 0.24, wait: 4.0 }] }
+];
+const W5 = [
+  { title: 'The Border Wakes', packs: [{ k: 'raider', n: 12, gap: 0.32 }, { k: 'arms', n: 5, gap: 0.75, wait: 1.4 }] },
+  { title: 'Watch-Fires', packs: [{ k: 'knight', n: 4, gap: 1.0 }, { k: 'hound', n: 8, gap: 0.30, wait: 1.2 }, { k: 'arms', n: 4, gap: 0.7, wait: 3.0 }] },
+  { title: 'Half-Man, Half-Briar', merlin: true, packs: [{ k: 'champ', n: 1, gap: 0 }, { k: 'raider', n: 12, gap: 0.28, wait: 1.6 }, { k: 'arms', n: 5, gap: 0.65, wait: 3.0 }] },
+  { title: 'The Forts Answer', packs: [{ k: 'wight', n: 4, gap: 1.0 }, { k: 'knight', n: 4, gap: 0.85, wait: 1.2 }, { k: 'hound', n: 8, gap: 0.26, wait: 3.0 }] },
+  { title: 'Two Champions', packs: [{ k: 'champ', n: 2, gap: 3.2 }, { k: 'raider', n: 14, gap: 0.24, wait: 1.0 }, { k: 'arms', n: 6, gap: 0.55, wait: 3.4 }] },
+  { title: 'Iron and Thorn', packs: [{ k: 'knight', n: 6, gap: 0.70 }, { k: 'wight', n: 4, gap: 0.9, wait: 1.4 }, { k: 'hound', n: 10, gap: 0.24, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'champ', n: 1, gap: 0 }, { k: 'raider', n: 14, gap: 0.22, wait: 1.2 }, { k: 'knight', n: 4, gap: 0.75, wait: 3.0 }] },
+  { title: 'The Watch Cracks', packs: [{ k: 'champ', n: 2, gap: 2.6 }, { k: 'arms', n: 8, gap: 0.50, wait: 1.0 }, { k: 'hound', n: 10, gap: 0.22, wait: 4.0 }] },
+  { title: 'No Soft Border', packs: [{ k: 'knight', n: 6, gap: 0.60 }, { k: 'wight', n: 5, gap: 0.8, wait: 1.2 }, { k: 'raider', n: 14, gap: 0.20, wait: 3.0 }] },
+  { title: 'Leave the Towers', packs: [{ k: 'champ', n: 2, gap: 2.2 }, { k: 'knight', n: 6, gap: 0.58, wait: 1.0 }, { k: 'hound', n: 12, gap: 0.22, wait: 4.0 }, { k: 'arms', n: 6, gap: 0.5, wait: 6.0 }] }
+];
+const W6 = [
+  { title: 'Scarred Fields', packs: [{ k: 'raider', n: 14, gap: 0.28 }, { k: 'arms', n: 6, gap: 0.65, wait: 1.2 }] },
+  { title: 'Smoke on the Gates', packs: [{ k: 'knight', n: 5, gap: 0.80 }, { k: 'hound', n: 10, gap: 0.26, wait: 1.0 }, { k: 'wight', n: 3, gap: 1.1, wait: 3.0 }] },
+  { title: 'Backs to the Stone', merlin: true, packs: [{ k: 'champ', n: 1, gap: 0 }, { k: 'arms', n: 8, gap: 0.50, wait: 1.4 }, { k: 'raider', n: 12, gap: 0.22, wait: 3.0 }] },
+  { title: 'Witch-Fire Wind', packs: [{ k: 'hound', n: 12, gap: 0.22 }, { k: 'knight', n: 5, gap: 0.7, wait: 1.2 }, { k: 'wight', n: 4, gap: 0.9, wait: 3.2 }] },
+  { title: 'The Approach Thickens', packs: [{ k: 'champ', n: 2, gap: 2.8 }, { k: 'raider', n: 16, gap: 0.20, wait: 1.0 }, { k: 'arms', n: 6, gap: 0.5, wait: 3.4 }] },
+  { title: 'All Hosts', packs: [{ k: 'wight', n: 5, gap: 0.85 }, { k: 'knight', n: 6, gap: 0.58, wait: 1.0 }, { k: 'hound', n: 10, gap: 0.22, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'champ', n: 2, gap: 2.4 }, { k: 'raider', n: 14, gap: 0.20, wait: 1.0 }, { k: 'knight', n: 5, gap: 0.6, wait: 3.0 }] },
+  { title: 'The Fields Burn', packs: [{ k: 'arms', n: 10, gap: 0.45 }, { k: 'hound', n: 12, gap: 0.20, wait: 1.2 }, { k: 'wight', n: 5, gap: 0.75, wait: 4.0 }] },
+  { title: 'Almost the Gate', packs: [{ k: 'champ', n: 2, gap: 2.0 }, { k: 'knight', n: 6, gap: 0.52, wait: 1.0 }, { k: 'raider', n: 16, gap: 0.18, wait: 3.0 }] },
+  { title: 'The Thorn-Drake', packs: [{ k: 'drake', n: 1, gap: 0 }, { k: 'champ', n: 1, gap: 0, wait: 4.0 }, { k: 'arms', n: 8, gap: 0.55, wait: 2.2 }, { k: 'hound', n: 10, gap: 0.22, wait: 6.0 }, { k: 'raider', n: 12, gap: 0.20, wait: 8.0 }] }
+];
+const W7 = [
+  { title: 'The Outer Walls', packs: [{ k: 'raider', n: 14, gap: 0.26 }, { k: 'arms', n: 6, gap: 0.60, wait: 1.2 }] },
+  { title: 'Morgan Strongest', merlin: true, packs: [{ k: 'hound', n: 12, gap: 0.22 }, { k: 'knight', n: 5, gap: 0.7, wait: 1.0 }, { k: 'wight', n: 4, gap: 0.9, wait: 3.0 }] },
+  { title: 'Gatehouse Shadows', packs: [{ k: 'champ', n: 2, gap: 2.6 }, { k: 'raider', n: 14, gap: 0.20, wait: 1.2 }, { k: 'arms', n: 6, gap: 0.5, wait: 3.2 }] },
+  { title: 'Thorns on the Stone', packs: [{ k: 'wight', n: 6, gap: 0.80 }, { k: 'knight', n: 6, gap: 0.55, wait: 1.0 }, { k: 'hound', n: 12, gap: 0.20, wait: 3.0 }] },
+  { title: 'No Soft Hour', packs: [{ k: 'champ', n: 2, gap: 2.2 }, { k: 'arms', n: 8, gap: 0.45, wait: 1.0 }, { k: 'raider', n: 16, gap: 0.18, wait: 3.4 }] },
+  { title: 'The Hosts Entire', packs: [{ k: 'knight', n: 7, gap: 0.50 }, { k: 'wight', n: 5, gap: 0.75, wait: 1.2 }, { k: 'hound', n: 12, gap: 0.18, wait: 3.0 }] },
+  { title: "Julian's Favor", bonus: 7, cheer: true, packs: [{ k: 'champ', n: 2, gap: 2.0 }, { k: 'raider', n: 16, gap: 0.18, wait: 1.0 }, { k: 'knight', n: 6, gap: 0.5, wait: 3.0 }] },
+  { title: 'The Gate Shudders', packs: [{ k: 'champ', n: 3, gap: 2.4 }, { k: 'arms', n: 8, gap: 0.42, wait: 1.0 }, { k: 'hound', n: 12, gap: 0.18, wait: 4.0 }] },
+  { title: 'Hold until the Horns', packs: [{ k: 'wight', n: 6, gap: 0.70 }, { k: 'knight', n: 7, gap: 0.48, wait: 1.0 }, { k: 'raider', n: 16, gap: 0.16, wait: 3.2 }] },
+  { title: 'The Shade of Mordred', packs: [{ k: 'mordred', n: 1, gap: 0 }, { k: 'champ', n: 2, gap: 3.0, wait: 3.5 }, { k: 'knight', n: 6, gap: 0.55, wait: 2.0 }, { k: 'hound', n: 12, gap: 0.20, wait: 6.0 }, { k: 'wight', n: 4, gap: 0.8, wait: 8.0 }] }
 ];
 
 const LEVELS = [
   {
-    name: 'Amberwatch Road', dusk: 0, gold: 250,
+    name: 'The First Warning', theme: 'forest', blight: 0, dusk: 0, gold: 250,
     rune: { x: 572, y: 86 }, banner: { x: 1220, y: 292 }, guard: { x: 1172, y: 448 },
-    heroes: [{ id: 'julian', x: 980, y: 360 }, { id: 'shadow', x: 940, y: 410 }, { id: 'papa', x: 1020, y: 420 }],
+    heroes: [{ id: 'julian', x: 980, y: 360 }, { id: 'austin', x: 640, y: 300 }, { id: 'papa', x: 1020, y: 420 }],
     path: [
       { x: 18, y: 438 }, { x: 150, y: 418 }, { x: 236, y: 318 }, { x: 318, y: 198 },
       { x: 468, y: 148 }, { x: 610, y: 188 }, { x: 698, y: 318 }, { x: 758, y: 478 },
@@ -109,39 +160,132 @@ const LEVELS = [
       { x: 188, y: 528 }, { x: 348, y: 292 }, { x: 498, y: 78 }, { x: 628, y: 318 },
       { x: 818, y: 358 }, { x: 928, y: 618 }, { x: 1088, y: 292 }, { x: 1138, y: 538 }
     ],
-    waves: W1
+    waves: W1,
+    interlude: {
+      eyebrow: 'A BREATH ON THE ROAD',
+      title: 'The village still stands.',
+      line: 'Julian wrings thorn-blood from the scarlet cloak. Austin plants the hammer and says nothing. Papa strings the yew again.',
+      speak: 'A wounded messenger from the north: Arthur’s host is days away. Hold the south.'
+    }
   },
   {
-    name: 'River Cut', dusk: 0.22, gold: 190,
+    name: 'The River Fords', theme: 'ford', blight: 0.12, dusk: 0.18, gold: 190,
     rune: { x: 560, y: 70 }, banner: { x: 1220, y: 250 }, guard: { x: 1180, y: 360 },
-    heroes: [{ id: 'julian', x: 1040, y: 300 }, { id: 'shadow', x: 1000, y: 350 }, { id: 'papa', x: 1080, y: 360 }],
+    heroes: [{ id: 'julian', x: 1040, y: 300 }, { id: 'austin', x: 640, y: 400 }, { id: 'papa', x: 1080, y: 360 }],
     path: [
-      { x: 16, y: 580 }, { x: 170, y: 560 }, { x: 250, y: 400 }, { x: 170, y: 250 },
-      { x: 340, y: 140 }, { x: 540, y: 160 }, { x: 640, y: 300 }, { x: 540, y: 440 },
-      { x: 720, y: 540 }, { x: 920, y: 500 }, { x: 1060, y: 340 }, { x: 1180, y: 280 },
-      { x: 1268, y: 270 }
+      { x: 16, y: 180 }, { x: 170, y: 200 }, { x: 260, y: 320 }, { x: 180, y: 460 },
+      { x: 320, y: 560 }, { x: 520, y: 580 }, { x: 640, y: 440 }, { x: 640, y: 280 },
+      { x: 800, y: 220 }, { x: 980, y: 300 }, { x: 1100, y: 420 }, { x: 1268, y: 380 }
     ],
     pads: [
-      { x: 90, y: 470 }, { x: 320, y: 280 }, { x: 480, y: 80 },
-      { x: 700, y: 380 }, { x: 860, y: 620 }, { x: 1120, y: 200 }
+      { x: 90, y: 300 }, { x: 320, y: 400 }, { x: 480, y: 200 },
+      { x: 720, y: 360 }, { x: 860, y: 120 }, { x: 1120, y: 240 }
     ],
-    waves: W2
+    waves: W2,
+    interlude: {
+      eyebrow: 'BREAD BY THE WATER',
+      title: 'The ford is ours — for an hour.',
+      line: 'The three share bread on wet stone. Austin’s shadow stretches across the crossing. Papa watches the far bank.',
+      speak: 'Julian: “They will try the next mile.” Austin nods once. That is enough.'
+    }
   },
   {
-    name: 'Night Gate', dusk: 0.48, gold: 150,
-    rune: { x: 640, y: 80 }, banner: { x: 1220, y: 360 }, guard: { x: 1188, y: 500 },
-    heroes: [{ id: 'julian', x: 1080, y: 400 }, { id: 'shadow', x: 1040, y: 450 }, { id: 'papa', x: 1120, y: 460 }],
+    name: 'The Roman Road', theme: 'roman', blight: 0.22, dusk: 0.12, gold: 155,
+    rune: { x: 640, y: 70 }, banner: { x: 1220, y: 320 }, guard: { x: 1188, y: 470 },
+    heroes: [{ id: 'julian', x: 1080, y: 360 }, { id: 'austin', x: 700, y: 300 }, { id: 'papa', x: 1120, y: 420 }],
     path: [
-      { x: 16, y: 190 }, { x: 200, y: 150 }, { x: 340, y: 280 }, { x: 220, y: 440 },
-      { x: 280, y: 600 }, { x: 500, y: 640 }, { x: 660, y: 500 }, { x: 560, y: 320 },
-      { x: 720, y: 170 }, { x: 920, y: 150 }, { x: 1060, y: 280 }, { x: 940, y: 460 },
-      { x: 1100, y: 560 }, { x: 1268, y: 400 }
+      { x: 16, y: 500 }, { x: 160, y: 360 }, { x: 360, y: 220 }, { x: 560, y: 300 },
+      { x: 760, y: 440 }, { x: 960, y: 300 }, { x: 1120, y: 380 }, { x: 1268, y: 385 }
     ],
     pads: [
-      { x: 80, y: 320 }, { x: 380, y: 500 }, { x: 640, y: 360 },
-      { x: 840, y: 80 }, { x: 1140, y: 360 }
+      { x: 120, y: 240 }, { x: 300, y: 480 }, { x: 520, y: 220 },
+      { x: 700, y: 500 }, { x: 920, y: 220 }, { x: 1100, y: 520 }
     ],
-    waves: W3
+    waves: W3,
+    interlude: {
+      eyebrow: 'A RAVEN ON THE MILE',
+      title: 'The Roman stones remember older wars.',
+      line: 'A black bird drops a scrap of vellum. Merlin’s hand, or a good copy. The ink smells of oak and frost.',
+      speak: 'Merlin: The thorns remember Morgan. Do not linger on the road. The woods are already hers.'
+    }
+  },
+  {
+    name: 'The Blackened Woods', theme: 'woods', blight: 0.42, dusk: 0.38, gold: 165,
+    rune: { x: 200, y: 80 }, banner: { x: 1220, y: 250 }, guard: { x: 1160, y: 420 },
+    heroes: [{ id: 'julian', x: 1040, y: 300 }, { id: 'austin', x: 700, y: 400 }, { id: 'papa', x: 980, y: 180 }],
+    path: [
+      { x: 16, y: 520 }, { x: 160, y: 500 }, { x: 240, y: 340 }, { x: 360, y: 180 },
+      { x: 540, y: 150 }, { x: 700, y: 280 }, { x: 620, y: 450 }, { x: 760, y: 580 },
+      { x: 960, y: 520 }, { x: 1100, y: 340 }, { x: 1268, y: 300 }
+    ],
+    pads: [
+      { x: 80, y: 360 }, { x: 380, y: 320 }, { x: 560, y: 40 },
+      { x: 780, y: 400 }, { x: 900, y: 640 }, { x: 1140, y: 180 }
+    ],
+    waves: W4,
+    interlude: {
+      eyebrow: 'DUTY AND HOME',
+      title: 'The woods do not laugh back.',
+      line: 'They rest against a blasted oak. Julian speaks of the Table. Austin checks the hammer’s fist. Papa laughs once, quietly.',
+      speak: 'Papa: “Home is the next clean shot, lads.” Julian smiles. Austin almost does.'
+    }
+  },
+  {
+    name: 'The Outer Watchtowers', theme: 'watch', blight: 0.5, dusk: 0.32, gold: 150,
+    rune: { x: 640, y: 70 }, banner: { x: 1220, y: 280 }, guard: { x: 1180, y: 500 },
+    heroes: [{ id: 'julian', x: 1080, y: 340 }, { id: 'austin', x: 860, y: 400 }, { id: 'papa', x: 1120, y: 400 }],
+    path: [
+      { x: 16, y: 240 }, { x: 200, y: 190 }, { x: 360, y: 280 }, { x: 340, y: 460 },
+      { x: 500, y: 580 }, { x: 720, y: 560 }, { x: 860, y: 400 }, { x: 780, y: 220 },
+      { x: 960, y: 150 }, { x: 1140, y: 240 }, { x: 1268, y: 360 }
+    ],
+    pads: [
+      { x: 80, y: 360 }, { x: 400, y: 160 }, { x: 560, y: 400 },
+      { x: 760, y: 680 }, { x: 980, y: 320 }, { x: 1140, y: 120 }
+    ],
+    waves: W5,
+    interlude: {
+      eyebrow: 'ANOTHER RAVEN',
+      title: 'The watchtowers were the first to see her fire.',
+      line: 'Smoke stands on the southern sky. Camelot’s walls are a pale line. The three drink cold water and rise.',
+      speak: 'Merlin: The walls of Camelot are the last. Arthur rides. Go.'
+    }
+  },
+  {
+    name: 'The Approach to Camelot', theme: 'burn', blight: 0.62, dusk: 0.28, gold: 145,
+    rune: { x: 200, y: 80 }, banner: { x: 1220, y: 330 }, guard: { x: 1180, y: 500 },
+    heroes: [{ id: 'julian', x: 1080, y: 380 }, { id: 'austin', x: 820, y: 400 }, { id: 'papa', x: 1120, y: 440 }],
+    path: [
+      { x: 16, y: 560 }, { x: 180, y: 500 }, { x: 300, y: 360 }, { x: 280, y: 200 },
+      { x: 480, y: 140 }, { x: 700, y: 200 }, { x: 820, y: 360 }, { x: 740, y: 520 },
+      { x: 920, y: 580 }, { x: 1100, y: 480 }, { x: 1268, y: 400 }
+    ],
+    pads: [
+      { x: 100, y: 400 }, { x: 380, y: 80 }, { x: 600, y: 360 },
+      { x: 860, y: 200 }, { x: 1000, y: 680 }
+    ],
+    waves: W6,
+    interlude: {
+      eyebrow: 'THE GATES RISE',
+      title: 'Smoke on the fields. Stone ahead.',
+      line: 'Camelot’s gatehouse fills the sky. Julian sets the scarlet cloak. Austin takes the road’s throat. Papa finds a high stone.',
+      speak: 'Julian: “Arthur rides. We hold until he does.”'
+    }
+  },
+  {
+    name: 'The Final Defense', theme: 'camelot', blight: 0.72, dusk: 0.44, gold: 135,
+    rune: { x: 640, y: 64 }, banner: { x: 1220, y: 300 }, guard: { x: 1188, y: 520 },
+    heroes: [{ id: 'julian', x: 1100, y: 380 }, { id: 'austin', x: 720, y: 400 }, { id: 'papa', x: 1040, y: 220 }],
+    path: [
+      { x: 16, y: 360 }, { x: 160, y: 300 }, { x: 280, y: 400 }, { x: 400, y: 540 },
+      { x: 580, y: 580 }, { x: 720, y: 440 }, { x: 560, y: 300 }, { x: 700, y: 180 },
+      { x: 900, y: 150 }, { x: 1040, y: 240 }, { x: 1120, y: 380 }, { x: 1268, y: 400 }
+    ],
+    pads: [
+      { x: 80, y: 200 }, { x: 360, y: 280 }, { x: 560, y: 400 },
+      { x: 840, y: 360 }, { x: 980, y: 80 }
+    ],
+    waves: W7
   }
 ];
 
@@ -150,6 +294,8 @@ function currentWaves() { return currentLevel().waves; }
 function runePos() { return currentLevel().rune; }
 function bannerPos() { return currentLevel().banner; }
 function guardPos() { return currentLevel().guard; }
+function levelTheme() { return currentLevel().theme || 'forest'; }
+function levelBlight() { return currentLevel().blight || 0; }
 
 function buildPath(pts) {
   const segs = [];
@@ -164,7 +310,7 @@ function buildPath(pts) {
 }
 let PATH = buildPath(LEVELS[0].path);
 
-function pathAt(d, fly) {
+function pathAt(d, air) {
   d = clamp(d, 0, PATH.total);
   let s = PATH.segs[PATH.segs.length - 1];
   for (let i = 0; i < PATH.segs.length; i++) {
@@ -173,7 +319,7 @@ function pathAt(d, fly) {
   const t = s.len ? (d - s.start) / s.len : 1;
   return {
     x: s.a.x + (s.b.x - s.a.x) * t,
-    y: s.a.y + (s.b.y - s.a.y) * t - (fly ? 36 : 0),
+    y: s.a.y + (s.b.y - s.a.y) * t - (air ? 36 : 0),
     ang: Math.atan2(s.b.y - s.a.y, s.b.x - s.a.x)
   };
 }
@@ -264,6 +410,7 @@ const state = {
   fx: [],
   floats: [],
   pulses: [],
+  roots: [],
   heroes: [],
   selected: null,
   placing: null,
@@ -346,9 +493,9 @@ function floatText(x, y, text, color) {
 
 function makeHero(id, x, y) {
   const base = {
-    julian: { name: 'Sir Julian', title: 'the Brave', hp: 240, dmg: 20, range: 48, spd: 100, rate: 0.52, ability: 'Lionheart', cdMax: 12 },
-    shadow: { name: 'Shadow Aussie', title: 'the Veil', hp: 340, dmg: 12, range: 50, spd: 78, rate: 0.64, ability: 'Bulwark', cdMax: 16 },
-    papa: { name: 'Papa', title: 'the Warm', hp: 132, dmg: 9, range: 172, spd: 82, rate: 0.70, ability: 'Volley', cdMax: 11 }
+    julian: { name: 'Julian', title: 'the Lionhearted', hp: 250, dmg: 22, range: 48, spd: 104, rate: 0.50, ability: 'Lionheart', cdMax: 12 },
+    austin: { name: 'Austin', title: 'the Shadow', hp: 520, dmg: 14, range: 54, spd: 72, rate: 0.68, ability: 'Bulwark', cdMax: 16 },
+    papa: { name: 'Papa', title: 'of the Longbow', hp: 132, dmg: 10, range: 208, spd: 82, rate: 0.68, ability: 'Volley', cdMax: 11 }
   }[id];
   return {
     id, x, y, tx: x, ty: y,
@@ -376,6 +523,7 @@ function resetRun(level) {
   state.fx = [];
   state.floats = [];
   state.pulses = [];
+  state.roots = [];
   state.heroes = L.heroes.map((h) => makeHero(h.id, h.x, h.y));
   state.selected = null;
   state.placing = null;
@@ -426,6 +574,21 @@ function weakestEnemy(p, range) {
   }
   return best;
 }
+function priorityEnemy(p, range) {
+  let best = null, score = -1e9;
+  const list = livingEnemies();
+  for (let i = 0; i < list.length; i++) {
+    const e = list[i];
+    const d = Math.hypot(e.x - p.x, e.y - p.y);
+    if (d > range) continue;
+    const s = (e.boss ? 900 : 0) + (e.elite ? 450 : 0) + e.d * 0.12 - d * 0.22;
+    if (s > score) { score = s; best = e; }
+  }
+  return best;
+}
+function austinTank() {
+  return state.heroes.find((h) => h.id === 'austin' && h.hp > 0);
+}
 function hurt(e, raw, color) {
   if (!e || e.hp <= 0) return;
   const dmg = Math.max(1, raw - (e.armor || 0) * 0.65);
@@ -445,18 +608,24 @@ function kill(e) {
       life: 0.45, r: 4 + Math.random() * 6, color: e.color
     });
   }
-  if (e.kind === 'boss') toast('Marrow the Gatebreaker falls.');
+  if (e.boss) toast(e.name + ' falls.');
+  if (e.kind === 'wight') {
+    state.roots.push({ x: e.x, y: e.y, life: 8, r: 52 });
+    floatText(e.x, e.y + 10, 'roots', '#7aaa6a');
+  }
 }
 
 function spawnEnemy(kind, waveIndex) {
   const k = KINDS[kind];
-  const scale = 1 + waveIndex * 0.085 + state.level * 0.16;
+  if (!k) return;
+  const scale = 1 + waveIndex * 0.075 + state.level * 0.09;
   const hpMul = isVeteran() ? VETERAN_HP : 1;
-  const p = pathAt(0, k.fly);
+  const p = pathAt(0, k.air);
   state.enemies.push({
     kind, name: k.name, x: p.x, y: p.y, d: 0, ang: 0,
-    hp: k.hp * scale * hpMul, mhp: k.hp * scale * hpMul, spd: k.spd * (1 + state.level * 0.08), gold: k.gold, armor: k.armor,
-    fly: k.fly, r: k.r, leak: k.leak, color: k.color,
+    hp: k.hp * scale * hpMul, mhp: k.hp * scale * hpMul, spd: k.spd * (1 + state.level * 0.035), gold: k.gold, armor: k.armor,
+    fly: k.fly, air: !!k.air, r: k.r, leak: k.leak, color: k.color,
+    boss: !!k.boss, elite: !!k.elite,
     stun: 0, slow: 0, burn: 0, burnDps: 0, flash: 0, dead: false, atkT: 0, bob: Math.random() * 6
   });
 }
@@ -472,8 +641,10 @@ function queueWave(idx) {
   if (w.bonus) {
     addGold(w.bonus);
     SFX.cheer();
-    toast("Julian's Favor! +7 gold. Julian the Brave stands!");
+    toast("Julian's Favor! +7 gold. Julian the Lionhearted stands!");
     state.fx.push({ kind: 'spark', x: 640, y: 90, life: 1.4, r: 28 });
+  } else if (w.merlin) {
+    toast('A raven from Merlin: ' + w.title);
   } else {
     toast(w.title);
   }
@@ -590,7 +761,7 @@ function useAbility(h) {
   if (!h || h.cd > 0 || h.hp <= 0) return;
   if (h.id === 'julian') lionheart(h);
   else if (h.id === 'papa') volley(h);
-  else bulwark(h);
+  else if (h.id === 'austin') bulwark(h);
   h.cd = h.cdMax;
   syncHeroUI();
 }
@@ -605,14 +776,14 @@ function lionheart(h) {
   h.smash = 0.25;
   livingEnemies().forEach((en) => {
     if (Math.hypot(en.x - h.x, en.y - h.y) < 78) {
-      hurt(en, 42 + (h.empower > 0 ? 12 : 0), '#9ec4ff');
+      hurt(en, 42 + (h.empower > 0 ? 12 : 0), '#ffd070');
       en.stun = Math.max(en.stun, 0.35);
     }
   });
   state.shake = 10;
   SFX.smash();
-  toast('Julian the Brave stands!');
-  state.fx.push({ kind: 'ring', x: h.x, y: h.y, life: 0.45, r: 20, color: '#4a78d8' });
+  toast('Lionheart! Julian the Lionhearted stands!');
+  state.fx.push({ kind: 'ring', x: h.x, y: h.y, life: 0.45, r: 20, color: '#c42830' });
 }
 
 function shootArrow(h, e, dmg) {
@@ -630,27 +801,29 @@ function volley(h) {
   h.volleyGap = 0;
   h.smash = 0.22;
   SFX.bow();
-  toast('Volley! Papa rains stout arrows.');
+  toast('Volley! Papa of the Longbow rains stout shafts.');
 }
 
 function bulwark(h) {
   livingEnemies().forEach((en) => {
-    if (Math.hypot(en.x - h.x, en.y - h.y) < 72) {
-      hurt(en, 18, '#cfe6ff');
-      en.stun = Math.max(en.stun, 1.3);
+    const d = Math.hypot(en.x - h.x, en.y - h.y);
+    if (d < 86) {
+      hurt(en, 20, '#c8b4ff');
+      en.stun = Math.max(en.stun, 1.35);
+      if (!en.fly && d < 110) en.slow = Math.max(en.slow, 2.2);
     }
   });
   const d = nearestPath(h);
   const p = pathAt(d, false);
   const tang = p.ang + Math.PI / 2;
   state.walls.push({
-    x: p.x, y: p.y, hp: 92, mhp: 92, life: 9,
-    x1: p.x + Math.cos(tang) * 34, y1: p.y + Math.sin(tang) * 34,
-    x2: p.x - Math.cos(tang) * 34, y2: p.y - Math.sin(tang) * 34
+    x: p.x, y: p.y, hp: 110, mhp: 110, life: 10,
+    x1: p.x + Math.cos(tang) * 36, y1: p.y + Math.sin(tang) * 36,
+    x2: p.x - Math.cos(tang) * 36, y2: p.y - Math.sin(tang) * 36
   });
   h.smash = 0.25;
   SFX.smash();
-  toast('Bulwark! The lane is shut.');
+  toast('Bulwark! Austin challenges the lane.');
 }
 
 function update(dt) {
@@ -675,6 +848,7 @@ function update(dt) {
   updateHeroes(dt);
   updateSoldiers(dt);
   updateWalls(dt);
+  updateRoots(dt);
   updateEnemies(dt);
   updateTowers(dt);
   updateShots(dt);
@@ -714,7 +888,7 @@ function updateHeroes(dt) {
     if (h.volley > 0) {
       h.volleyGap -= dt;
       if (h.volleyGap <= 0) {
-        const ve = nearestEnemy(h, 230);
+        const ve = priorityEnemy(h, 250) || nearestEnemy(h, 250);
         if (ve) {
           h.facing = ve.x >= h.x ? 1 : -1;
           shootArrow(h, ve, h.dmg * 0.9 + (h.empower > 0 ? 4 : 0));
@@ -724,7 +898,7 @@ function updateHeroes(dt) {
         h.smash = 0.12;
       }
     }
-    const e = nearestEnemy(h, h.range + 8);
+    const e = h.id === 'papa' ? (priorityEnemy(h, h.range + 8) || nearestEnemy(h, h.range + 8)) : nearestEnemy(h, h.range + 8);
     h.atkT -= dt;
     if (e && Math.hypot(e.x - h.x, e.y - h.y) <= h.range) {
       if (h.atkT <= 0) {
@@ -735,16 +909,16 @@ function updateHeroes(dt) {
           h.facing = e.x >= h.x ? 1 : -1;
           shootArrow(h, e, h.dmg * mul);
         } else {
-          const col = h.id === 'julian' ? '#9ec4ff' : '#c8b4ff';
+          const col = h.id === 'julian' ? '#ffd070' : '#c8b4ff';
           hurt(e, h.dmg * mul, col);
-          if (h.id === 'shadow') e.slow = Math.max(e.slow, 1.4);
+          if (h.id === 'austin') e.slow = Math.max(e.slow, 1.6);
           SFX.slash();
         }
       }
     }
-    if (h.id === 'shadow') {
+    if (h.id === 'austin') {
       livingEnemies().forEach((en) => {
-        if (!en.fly && Math.hypot(en.x - h.x, en.y - h.y) < 34) en.slow = Math.max(en.slow, 0.45);
+        if (!en.fly && Math.hypot(en.x - h.x, en.y - h.y) < 48) en.slow = Math.max(en.slow, 0.55);
       });
     }
   });
@@ -797,6 +971,11 @@ function updateWalls(dt) {
   state.walls = state.walls.filter((w) => w.life > 0 && w.hp > 0);
 }
 
+function updateRoots(dt) {
+  state.roots.forEach((r) => { r.life -= dt; });
+  state.roots = state.roots.filter((r) => r.life > 0);
+}
+
 function distToSeg(px, py, x1, y1, x2, y2) {
   const dx = x2 - x1, dy = y2 - y1;
   const l2 = dx * dx + dy * dy || 1;
@@ -817,8 +996,12 @@ function blockersNear(e) {
     const w = state.walls[i];
     if (distToSeg(e.x, e.y, w.x1, w.y1, w.x2, w.y2) < 16) best = { kind: 'wall', ref: w };
   }
-  const tank = state.heroes.find((h) => h.id === 'shadow' && h.hp > 0);
-  if (tank && Math.hypot(tank.x - e.x, tank.y - e.y) < 22) best = { kind: 'shadow', ref: tank };
+  const tank = austinTank();
+  if (tank) {
+    const td = Math.hypot(tank.x - e.x, tank.y - e.y);
+    if (td < 40) best = { kind: 'austin', ref: tank };
+    else if (td < 64) best = { kind: 'austin', ref: tank };
+  }
   return best;
 }
 
@@ -838,28 +1021,32 @@ function updateEnemies(dt) {
     if (blk) {
       e.atkT -= dt;
       if (e.atkT <= 0) {
-        e.atkT = e.kind === 'brute' || e.kind === 'boss' ? 0.7 : 0.85;
-        const dmg = e.kind === 'boss' ? 18 : e.kind === 'brute' ? 10 : 6;
+        e.atkT = e.boss || e.kind === 'champ' || e.kind === 'knight' ? 0.68 : e.kind === 'arms' ? 0.74 : 0.85;
+        const dmg = e.boss ? 18 : e.kind === 'champ' ? 14 : e.kind === 'knight' ? 12 : e.kind === 'arms' ? 10 : 6;
         blk.ref.hp -= dmg;
-        if (blk.kind === 'shadow' && blk.ref.hp <= 0) floatText(blk.ref.x, blk.ref.y, 'Aussie yields', '#c8b4ff');
+        if (blk.kind === 'austin' && blk.ref.hp <= 0) floatText(blk.ref.x, blk.ref.y, 'Austin yields', '#c8b4ff');
       }
       continue;
+    }
+    for (let r = 0; r < state.roots.length; r++) {
+      const z = state.roots[r];
+      if (Math.hypot(e.x - z.x, e.y - z.y) < z.r) e.slow = Math.max(e.slow, 1.15);
     }
     const slow = e.slow > 0 ? 0.62 : 1;
     if (e.slow > 0) e.slow -= dt;
     e.d += e.spd * slow * dt;
-    const p = pathAt(e.d, e.fly);
+    const p = pathAt(e.d, e.air);
     e.x = p.x;
     e.y = p.y + Math.sin(e.bob) * (e.fly ? 4 : 1);
     e.ang = p.ang;
     if (e.d >= PATH.total - 4) {
-      if (e.kind === 'boss') {
+      if (e.boss) {
         state.lives = 0;
         state.bossLeak = true;
         hudLives();
         SFX.leak();
         state.shake = 12;
-        toast('Marrow the Gatebreaker breaches the keep!');
+        toast(e.name + ' breaches the keep!');
         state.enemies.splice(i, 1);
         continue;
       }
@@ -982,9 +1169,15 @@ function nextSiege() {
   state.mode = 'next';
   SFX.cheer();
   hideMenus();
+  const won = currentLevel();
   const nxt = LEVELS[state.level + 1];
-  $('#nextTitle').textContent = nxt.name + ' waits.';
-  $('#nextLine').textContent = 'Harder road. Tighter purse. Julian still stands.';
+  const card = won.interlude || {};
+  const eye = $('#nextEyebrow');
+  if (eye) eye.textContent = card.eyebrow || 'A BREATH BETWEEN SIEGES';
+  $('#nextTitle').textContent = card.title || ((nxt && nxt.name) + ' waits.');
+  $('#nextLine').textContent = card.line || 'Harder road. Tighter purse. Julian the Lionhearted still stands.';
+  const speak = $('#nextSpeak');
+  if (speak) speak.textContent = card.speak || '';
   $('#scrNext').hidden = false;
   showHud(false);
 }
@@ -1009,8 +1202,8 @@ function defeat() {
   SFX.lose();
   hideMenus();
   $('#defeatLine').textContent = state.bossLeak
-    ? 'Marrow the Gatebreaker walks through the gate. The keep is his.'
-    : 'Julian plants his banner in the rubble. Tomorrow, they try again.';
+    ? 'A boss of the Black Thorn walks the gate. Camelot’s keep is theirs.'
+    : 'Julian plants the lion-cloak in the rubble. Tomorrow, they try again.';
   $('#scrDefeat').hidden = false;
   showHud(false);
 }
@@ -1191,8 +1384,14 @@ function draw() {
   drawBridge(c);
   drawKeep(c);
   drawDecor(c);
+  const veil = levelBlight();
+  if (veil > 0.28) {
+    c.fillStyle = 'rgba(12, 8, 14, ' + (veil * 0.16).toFixed(3) + ')';
+    c.fillRect(-40, -40, W + 80, H + 80);
+  }
   drawPads(c);
   state.towers.forEach((t) => { if (t.type) drawTower(c, t); });
+  state.roots.forEach((r) => drawRoots(c, r));
   state.walls.forEach((w) => drawWall(c, w));
   state.soldiers.forEach((s) => { if (s.hp > 0) drawSoldier(c, s); });
   state.enemies.forEach((e) => drawEnemy(c, e));
@@ -1255,14 +1454,28 @@ function draw() {
 
 function drawSky(c) {
   const dusk = (currentLevel().dusk || 0);
+  const theme = levelTheme();
   const g = c.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, dusk > 0.3 ? '#1a2848' : dusk > 0 ? '#4a6a98' : '#6aa8cc');
-  g.addColorStop(0.28, dusk > 0.3 ? '#3a3858' : dusk > 0 ? '#8a7a68' : '#9cc4d8');
-  g.addColorStop(0.52, dusk > 0.3 ? '#5a3a48' : dusk > 0 ? '#b89068' : '#c8d090');
-  g.addColorStop(1, dusk > 0.3 ? '#1c2c18' : dusk > 0 ? '#4a6e38' : '#5a8236');
+  if (theme === 'burn') {
+    g.addColorStop(0, '#4a2830'); g.addColorStop(0.28, '#8a4a30'); g.addColorStop(0.52, '#b86838'); g.addColorStop(1, '#3a2a18');
+  } else if (theme === 'camelot') {
+    g.addColorStop(0, '#1a2038'); g.addColorStop(0.28, '#3a3858'); g.addColorStop(0.52, '#4a3a48'); g.addColorStop(1, '#1c2418');
+  } else if (theme === 'woods') {
+    g.addColorStop(0, '#1a2430'); g.addColorStop(0.28, '#2a3840'); g.addColorStop(0.52, '#3a4a38'); g.addColorStop(1, '#142018');
+  } else if (theme === 'roman') {
+    g.addColorStop(0, '#7aa0b8'); g.addColorStop(0.28, '#c8b090'); g.addColorStop(0.52, '#b8a070'); g.addColorStop(1, '#6a7a40');
+  } else {
+    g.addColorStop(0, dusk > 0.3 ? '#1a2848' : dusk > 0 ? '#4a6a98' : '#6aa8cc');
+    g.addColorStop(0.28, dusk > 0.3 ? '#3a3858' : dusk > 0 ? '#8a7a68' : '#9cc4d8');
+    g.addColorStop(0.52, dusk > 0.3 ? '#5a3a48' : dusk > 0 ? '#b89068' : '#c8d090');
+    g.addColorStop(1, dusk > 0.3 ? '#1c2c18' : dusk > 0 ? '#4a6e38' : '#5a8236');
+  }
   c.fillStyle = g;
   c.fillRect(-40, -40, W + 80, H + 80);
-  if (dusk > 0.3) {
+  if (theme === 'burn') {
+    blob(c, 200, 90, 30, 30); paint(c, fillRad(c, 192, 82, 2, 30, '#ffe0a0', '#d06020'), '#a04010', 2);
+    c.globalAlpha = 0.22; blob(c, 200, 90, 70, 70); paint(c, '#ff8040', '#ff8040', 0); c.globalAlpha = 1;
+  } else if (dusk > 0.3 || theme === 'woods' || theme === 'camelot') {
     blob(c, 200, 86, 26, 26); paint(c, fillRad(c, 192, 78, 2, 26, '#f4ecd8', '#c8b898'), '#a89870', 2);
     c.globalAlpha = 0.16;
     blob(c, 200, 86, 52, 52); paint(c, '#f0e8c8', '#f0e8c8', 0);
@@ -1290,10 +1503,16 @@ function drawSky(c) {
 
 function drawHills(c) {
   const dusk = currentLevel().dusk || 0;
-  const topA = dusk > 0.3 ? '#2c4430' : dusk > 0 ? '#3a6234' : '#4a7230';
-  const topB = dusk > 0.3 ? '#1c3020' : dusk > 0 ? '#2a4a26' : '#345826';
-  const botA = dusk > 0.3 ? '#203428' : dusk > 0 ? '#2c4a28' : '#385c28';
-  const botB = dusk > 0.3 ? '#142018' : dusk > 0 ? '#1e3420' : '#284820';
+  const theme = levelTheme();
+  let topA = dusk > 0.3 ? '#2c4430' : dusk > 0 ? '#3a6234' : '#4a7230';
+  let topB = dusk > 0.3 ? '#1c3020' : dusk > 0 ? '#2a4a26' : '#345826';
+  let botA = dusk > 0.3 ? '#203428' : dusk > 0 ? '#2c4a28' : '#385c28';
+  let botB = dusk > 0.3 ? '#142018' : dusk > 0 ? '#1e3420' : '#284820';
+  if (theme === 'burn') { topA = '#5a3a22'; topB = '#3a2414'; botA = '#4a2a18'; botB = '#24140c'; }
+  if (theme === 'woods') { topA = '#1c3020'; topB = '#101810'; botA = '#142018'; botB = '#0c100c'; }
+  if (theme === 'roman') { topA = '#6a6a48'; topB = '#4a4a30'; botA = '#5a5a3a'; botB = '#3a3a24'; }
+  if (theme === 'watch') { topA = '#3a4a38'; topB = '#243028'; botA = '#2e3a30'; botB = '#1a241c'; }
+  if (theme === 'camelot') { topA = '#2a3430'; topB = '#1a2220'; botA = '#222c28'; botB = '#121816'; }
   c.beginPath();
   c.moveTo(-20, 520);
   c.quadraticCurveTo(200, 400, 420, 460);
@@ -1328,24 +1547,37 @@ function drawTree(c, x, y, s, tone) {
 }
 
 function drawForest(c) {
-  const lv = state.level;
+  const theme = levelTheme();
   const dusk = currentLevel().dusk || 0;
-  const tones = dusk > 0.3
-    ? ['#1e3a22', '#2a4a28', '#163018', '#304a2a']
-    : ['#2f6a2c', '#3a7a30', '#245820', '#4a8a38'];
-  const spots = lv === 1
+  const tones = (theme === 'woods' || dusk > 0.3)
+    ? ['#1a2e1c', '#243828', '#102010', '#2a3a24']
+    : theme === 'burn'
+      ? ['#3a2a18', '#2a1c10', '#4a3018', '#1e140c']
+      : theme === 'roman'
+        ? ['#4a5a30', '#3a4a24', '#5a6a38', '#2a3818']
+        : ['#2f6a2c', '#3a7a30', '#245820', '#4a8a38'];
+  const spots = theme === 'ford'
     ? [[30, 360, 1.1], [70, 300, 0.9], [20, 250, 0.8], [40, 500, 1], [90, 560, 1.1], [160, 600, 0.8]]
-    : [
-      [30, 360, 1.3], [70, 300, 1.1], [20, 250, 0.9], [110, 240, 1.2], [60, 200, 1],
-      [150, 180, 0.85], [40, 500, 1.1], [90, 560, 1.3], [20, 600, 1], [160, 600, 0.9],
-      [200, 160, 0.8], [260, 120, 1], [340, 90, 0.85]
-    ];
+    : theme === 'roman'
+      ? [[30, 200, 0.7], [80, 560, 0.8], [40, 600, 0.7]]
+      : theme === 'camelot'
+        ? [[30, 500, 0.8], [70, 580, 0.9], [20, 620, 0.7]]
+        : [
+          [30, 360, 1.3], [70, 300, 1.1], [20, 250, 0.9], [110, 240, 1.2], [60, 200, 1],
+          [150, 180, 0.85], [40, 500, 1.1], [90, 560, 1.3], [20, 600, 1], [160, 600, 0.9],
+          [200, 160, 0.8], [260, 120, 1], [340, 90, 0.85]
+        ];
+  if (theme === 'woods') {
+    spots.push([420, 80, 1.1], [780, 90, 1], [980, 80, 0.9], [240, 620, 1.2], [500, 640, 1]);
+  }
   spots.forEach(([x, y, sc], i) => drawTree(c, x, y, sc, tones[i % 4]));
-  const rocks = lv === 2
-    ? [[180, 520], [300, 560], [460, 200], [640, 640], [780, 360], [860, 200], [500, 360], [980, 120]]
-    : lv === 1
+  const rocks = theme === 'roman'
+    ? [[180, 520], [300, 200], [460, 500], [640, 200], [860, 500], [980, 180], [500, 560]]
+    : theme === 'ford'
       ? [[300, 560], [640, 640]]
-      : [[300, 560], [640, 640], [860, 200], [500, 360]];
+      : theme === 'watch'
+        ? [[180, 520], [460, 200], [640, 640], [860, 200], [500, 360], [980, 120]]
+        : [[300, 560], [640, 640], [860, 200], [500, 360]];
   const rock = dusk > 0.3 ? '#4a443c' : '#7a7064';
   const rock2 = dusk > 0.3 ? '#2e2822' : '#5a5448';
   rocks.forEach(([x, y]) => {
@@ -1359,10 +1591,10 @@ function drawForest(c) {
 }
 
 function drawRiver(c) {
-  const lv = state.level;
-  const water = lv === 2 ? '#1a3a58' : lv === 1 ? '#2a6a9a' : '#3a7ea8';
-  const edge = lv === 2 ? '#0a2030' : '#1a3a50';
-  if (lv === 1) {
+  const theme = levelTheme();
+  const water = theme === 'woods' || theme === 'camelot' ? '#1a3a40' : theme === 'ford' ? '#2a6a9a' : theme === 'burn' ? '#3a4a40' : '#3a7ea8';
+  const edge = theme === 'woods' || theme === 'camelot' ? '#0a2028' : '#1a3a50';
+  if (theme === 'ford') {
     c.beginPath();
     c.moveTo(-10, 430);
     c.quadraticCurveTo(180, 390, 320, 300);
@@ -1396,10 +1628,10 @@ function drawRiver(c) {
   c.quadraticCurveTo(810, 680, 800, 730);
   c.closePath();
   paint(c, water, edge, 3);
-  c.globalAlpha = lv === 2 ? 0.18 : 0.35;
+  c.globalAlpha = (theme === 'woods' || theme === 'camelot') ? 0.16 : 0.35;
   c.beginPath();
   c.moveTo(820, 680); c.quadraticCurveTo(860, 520, 1000, 260);
-  c.strokeStyle = lv === 2 ? '#8ab0c8' : '#cfefff'; c.lineWidth = 4; c.stroke();
+  c.strokeStyle = (theme === 'woods' || theme === 'camelot') ? '#6a8890' : '#cfefff'; c.lineWidth = 4; c.stroke();
   c.globalAlpha = 1;
 }
 
@@ -1430,12 +1662,12 @@ function drawPath(c) {
 }
 
 function drawBridge(c) {
-  const lv = state.level;
-  if (lv === 2) return;
+  const theme = levelTheme();
+  if (theme === 'roman' || theme === 'watch' || theme === 'camelot') return;
   c.save();
-  if (lv === 1) c.translate(700, 330);
+  if (theme === 'ford') c.translate(640, 430);
   else c.translate(812, 498);
-  c.rotate(lv === 1 ? 0.25 : 0.55);
+  c.rotate(theme === 'ford' ? 1.55 : 0.55);
   rr(c, -48, -18, 96, 36, 3); paint(c, fillLin(c, 0, -18, 0, 18, '#9a6a3c', '#5a381c'), '#2a180c', 2);
   for (let i = -3; i <= 3; i++) {
     c.beginPath(); c.moveTo(i * 12, -16); c.lineTo(i * 12, 16);
@@ -1480,6 +1712,14 @@ function drawKeep(c) {
   c.fillStyle = '#e6b423';
   c.font = '700 13px Palatino, serif';
   c.textAlign = 'center';
+  if (levelTheme() === 'camelot') {
+    rr(c, -110, 8, 40, 142, 3); paint(c, fillLin(c, -110, 8, -70, 150, '#8a8478', '#4a443c'), '#2a241c', 2);
+    rr(c, 86, 8, 40, 142, 3); paint(c, fillLin(c, 86, 8, 126, 150, '#8a8478', '#4a443c'), '#2a241c', 2);
+    c.fillStyle = '#e6b423';
+    c.font = '700 11px Palatino, serif';
+    c.textAlign = 'center';
+    c.fillText('CAMELOT', 10, 48);
+  }
   c.fillText('777', 10, 78);
   c.fillStyle = fillLin(c, 86, -8, 94, 46, '#c42830', '#6a1418');
   c.fillRect(86, -8, 8, 54);
@@ -1526,7 +1766,7 @@ function drawDecor(c) {
   });
 
   // grass tufts
-  c.strokeStyle = '#2a4a18';
+  c.strokeStyle = levelTheme() === 'burn' ? '#4a2a10' : '#2a4a18';
   c.lineWidth = 2;
   [[240, 600], [400, 640], [560, 580], [1000, 640], [380, 420]].forEach(([x, y]) => {
     c.beginPath();
@@ -1534,6 +1774,69 @@ function drawDecor(c) {
     c.moveTo(x, y); c.quadraticCurveTo(x + 3, y - 12, x + 6, y - 14);
     c.stroke();
   });
+  drawThemeExtras(c);
+}
+
+function drawThemeExtras(c) {
+  const theme = levelTheme();
+  if (theme === 'woods' || theme === 'watch' || theme === 'burn' || theme === 'camelot') {
+    c.strokeStyle = '#1a1410';
+    c.lineWidth = 2;
+    [[180, 200], [420, 80], [700, 100], [900, 80], [300, 620], [980, 600]].forEach(([x, y], i) => {
+      c.beginPath();
+      c.moveTo(x, y);
+      c.quadraticCurveTo(x + 8, y - 18 - (i % 3) * 4, x + 4, y - 28);
+      c.moveTo(x + 2, y);
+      c.quadraticCurveTo(x - 10, y - 12, x - 14, y - 22);
+      c.stroke();
+    });
+  }
+  if (theme === 'roman') {
+    [[220, 240], [780, 500], [1040, 220]].forEach(([x, y]) => {
+      rr(c, x, y, 36, 22, 2); paint(c, fillLin(c, x, y, x + 36, y + 22, '#8a8070', '#4a4438'), '#2a241c', 2);
+      c.fillStyle = 'rgba(30,24,18,0.25)';
+      c.fillRect(x + 6, y + 6, 8, 10);
+      c.fillRect(x + 20, y + 6, 8, 10);
+    });
+  }
+  if (theme === 'watch') {
+    [[200, 120], [980, 80]].forEach(([x, y]) => {
+      rr(c, x, y, 22, 64, 2); paint(c, fillLin(c, x, y, x + 22, y + 64, '#8a8478', '#4a443c'), '#2a241c', 2);
+      c.beginPath();
+      c.moveTo(x - 4, y + 4); c.lineTo(x + 11, y - 16); c.lineTo(x + 26, y + 4);
+      c.closePath();
+      paint(c, fillLin(c, x, y - 16, x + 11, y + 6, '#7a2028', '#3a1014'), '#1a0c0c', 2);
+    });
+  }
+  if (theme === 'burn') {
+    [[160, 480], [480, 300], [900, 160], [1040, 560]].forEach(([x, y], i) => {
+      c.globalAlpha = 0.35 + Math.sin(state.t * 3 + i) * 0.1;
+      blob(c, x, y, 10 + i, 16); paint(c, fillRad(c, x, y - 8, 1, 16, '#ffe080', '#c04010'), '#c04010', 0);
+      c.globalAlpha = 1;
+    });
+  }
+  if (theme === 'camelot') {
+    c.globalAlpha = 0.22 + Math.sin(state.t * 2) * 0.06;
+    blob(c, 640, 80, 80, 28); paint(c, '#6aaa60', '#6aaa60', 0);
+    c.globalAlpha = 1;
+  }
+}
+
+function drawRoots(c, r) {
+  const a = clamp(r.life / 8, 0, 1);
+  c.save();
+  c.globalAlpha = 0.35 + a * 0.4;
+  blob(c, r.x, r.y, r.r * 0.7, r.r * 0.42); paint(c, 'rgba(20, 28, 16, 0.55)', 'rgba(10, 14, 8, 0.4)', 0);
+  c.strokeStyle = '#1a2414';
+  c.lineWidth = 3;
+  for (let i = 0; i < 6; i++) {
+    const ang = i * Math.PI / 3 + state.t * 0.4;
+    c.beginPath();
+    c.moveTo(r.x, r.y);
+    c.quadraticCurveTo(r.x + Math.cos(ang) * r.r * 0.4, r.y + Math.sin(ang) * r.r * 0.25, r.x + Math.cos(ang) * r.r * 0.7, r.y + Math.sin(ang) * r.r * 0.35);
+    c.stroke();
+  }
+  c.restore();
 }
 
 function drawPads(c) {
@@ -1687,155 +1990,232 @@ function drawEnemy(c, e) {
   if (e.flash > 0) c.globalAlpha = 0.55;
   c.scale(Math.cos(e.ang) >= 0 ? 1 : -1, 1);
   contactShadow(c, 0, e.r + 3, e.r * 0.85, 3.5);
-  if (e.kind === 'runner') drawRunner(c);
-  else if (e.kind === 'brute') drawBrute(c);
-  else if (e.kind === 'bat') drawNightwing(c, e);
-  else drawMarrow(c);
+  if (e.kind === 'raider') drawRaider(c);
+  else if (e.kind === 'arms') drawArms(c);
+  else if (e.kind === 'knight') drawCorrKnight(c);
+  else if (e.kind === 'wight') drawWight(c, e);
+  else if (e.kind === 'hound') drawHound(c, e);
+  else if (e.kind === 'champ') drawChampion(c);
+  else if (e.kind === 'drake') drawDrake(c, e);
+  else drawMordred(c, e);
   c.restore();
-  if (e.hp < e.mhp || e.kind === 'boss') {
-    const w = e.kind === 'boss' ? 46 : 22;
+  if (e.hp < e.mhp || e.boss || e.kind === 'champ') {
+    const w = e.boss ? 52 : e.kind === 'champ' ? 34 : 22;
     c.fillStyle = '#1a140c';
     c.fillRect(e.x - w / 2, e.y - e.r - 16, w, 5);
-    c.fillStyle = e.kind === 'boss' ? '#e6b423' : '#c44';
+    c.fillStyle = e.boss ? '#e6b423' : '#c44';
     c.fillRect(e.x - w / 2, e.y - e.r - 16, w * clamp(e.hp / e.mhp, 0, 1), 5);
   }
-  if (e.kind === 'boss') {
+  if (e.boss || e.kind === 'champ') {
     c.fillStyle = '#f4e6c4';
     c.font = '700 11px Palatino, serif';
     c.textAlign = 'center';
-    c.fillText('Marrow the Gatebreaker', e.x, e.y - e.r - 22);
+    c.fillText(e.name, e.x, e.y - e.r - 22);
   }
 }
 
-function drawRunner(c) {
-  rr(c, -5.5, 5, 3.6, 9, 1.1); paint(c, fillLin(c, -5.5, 5, -2, 14, '#4a6a30', '#243818'), '#142010', 1);
-  rr(c, 2, 4.5, 3.4, 9.5, 1.1); paint(c, fillLin(c, 2, 4, 5, 14, '#3a5a28', '#1c2c14'), '#142010', 1);
-  blob(c, -3.6, 14.4, 2.2, 1.2); paint(c, '#2a3a18', '#101808', 0.7);
-  blob(c, 3.8, 14.2, 2.2, 1.2); paint(c, '#2a3a18', '#101808', 0.7);
-  blob(c, 0, 1.2, 8.6, 8.2); paint(c, fillLin(c, -7, -6, 7, 10, '#5a8a3c', '#2a4a1c'), '#1a2410', 1.6);
-  clothFold(c, -4, -2, -2, 6, 'rgba(16,24,10,0.32)');
-  rr(c, -7, -3, 11, 7, 2); paint(c, fillLin(c, -7, -3, 3, 4, '#6a4a28', '#3a2814'), '#1a140c', 1);
-  c.beginPath(); c.moveTo(7, -4); c.lineTo(16, 1); c.lineTo(15, 3.4); c.lineTo(7.2, -1.2); c.closePath();
-  paint(c, fillLin(c, 7, -4, 16, 3, '#d8d0c0', '#7a7060'), '#2a2418', 1);
-  c.strokeStyle = '#4a4034'; c.lineWidth = 0.7;
-  c.beginPath(); c.moveTo(8.2, -2.4); c.lineTo(14.4, 1.4); c.stroke();
+function drawRaider(c) {
+  rr(c, -5.5, 5, 3.6, 9, 1.1); paint(c, fillLin(c, -5.5, 5, -2, 14, '#3a2a22', '#1a1410'), '#120c08', 1);
+  rr(c, 2, 4.5, 3.4, 9.5, 1.1); paint(c, fillLin(c, 2, 4, 5, 14, '#2e221c', '#14100c'), '#120c08', 1);
+  blob(c, -3.6, 14.4, 2.2, 1.2); paint(c, '#1a1410', '#0c0806', 0.7);
+  blob(c, 3.8, 14.2, 2.2, 1.2); paint(c, '#1a1410', '#0c0806', 0.7);
+  blob(c, 0, 1.2, 8.6, 8.2); paint(c, fillLin(c, -7, -6, 7, 10, '#2a2420', '#12100c'), '#0c0806', 1.6);
+  clothFold(c, -4, -2, -2, 6, 'rgba(8,6,4,0.4)');
+  c.beginPath();
+  c.moveTo(-10, -4); c.quadraticCurveTo(-16, 8, -6, 16); c.lineTo(8, 12); c.quadraticCurveTo(6, 2, 2, -4);
+  c.closePath();
+  paint(c, fillLin(c, -12, -4, 4, 16, '#2a221c', '#0c0a08'), '#0a0806', 1.3);
+  c.beginPath(); c.moveTo(7, -4); c.lineTo(15, 2); c.lineTo(14, 4); c.lineTo(7.2, -1.2); c.closePath();
+  paint(c, fillLin(c, 7, -4, 15, 4, '#6a6458', '#2a241c'), '#1a140c', 1);
   drawFace(c, 6.2, -8.4, 5.4, 5.2, {
-    skin: '#7aaa4c', deep: '#3a5a24', eye: '#1a2410', white: '#e8f0c8',
-    brow: 'rgba(30,48,16,0.55)', lip: 'rgba(40,24,12,0.5)', lid: 'rgba(30,48,16,0.4)'
+    skin: '#8a6a4c', deep: '#4a3424', eye: '#1a140c', white: '#d8c8a8',
+    brow: 'rgba(20,12,8,0.6)', lip: 'rgba(40,16,12,0.5)', lid: 'rgba(20,12,8,0.4)'
   });
-  c.beginPath(); c.moveTo(3.2, -12.6); c.lineTo(1.4, -19); c.lineTo(5.6, -13.2); c.closePath();
-  paint(c, fillLin(c, 3, -19, 5, -12, '#4a6a30', '#243818'), '#142010', 1);
-  c.beginPath(); c.moveTo(8.8, -12.8); c.lineTo(8.2, -18.6); c.lineTo(11.2, -13); c.closePath();
-  paint(c, fillLin(c, 9, -19, 10, -12, '#4a6a30', '#243818'), '#142010', 1);
-  glint(c, 3.4, -10.2, 1.4, 1, 0.18);
+  c.strokeStyle = '#1a140c';
+  c.lineWidth = 0.9;
+  c.beginPath(); c.moveTo(3.4, -10); c.lineTo(5.2, -6); c.moveTo(8.6, -10); c.lineTo(7.2, -6); c.stroke();
+  c.beginPath();
+  c.moveTo(-2, -12); c.quadraticCurveTo(6, -18, 12, -10); c.lineTo(10, -8); c.quadraticCurveTo(6, -12, 0, -9);
+  c.closePath();
+  paint(c, fillLin(c, 4, -18, 6, -8, '#1a1612', '#0a0806'), '#080604', 1);
 }
 
-function drawBrute(c) {
-  rr(c, -9, 9, 5.5, 11, 1.4); paint(c, fillLin(c, -9, 9, -4, 20, '#5a4030', '#2a1c14'), '#1a1008', 1);
-  rr(c, 3, 9, 5.5, 11, 1.4); paint(c, fillLin(c, 3, 9, 8, 20, '#4a3424', '#221610'), '#1a1008', 1);
-  blob(c, -6, 20.4, 3.2, 1.6); paint(c, '#3a2a1c', '#140c08', 0.7);
-  blob(c, 6, 20.4, 3.2, 1.6); paint(c, '#3a2a1c', '#140c08', 0.7);
-  blob(c, 0, 3, 14.5, 13.5); paint(c, fillLin(c, -12, -8, 12, 16, '#8a6a4c', '#3a2c1c'), '#1a140c', 1.8);
-  clothFold(c, -6, -1, -3, 10, 'rgba(24,14,8,0.28)');
-  rr(c, -14, -7, 28, 14, 3); paint(c, fillLin(c, -14, -7, 10, 8, '#b0a898', '#5a5044'), '#2a241c', 1.5);
-  glint(c, -6, -4, 5, 2.2, 0.2);
-  rivet(c, -9, -2); rivet(c, 0, -3); rivet(c, 8, -1);
+function drawArms(c) {
+  rr(c, -8, 8, 5, 11, 1.3); paint(c, fillLin(c, -8, 8, -3, 19, '#3a342c', '#1a1610'), '#100c08', 1);
+  rr(c, 3, 8, 5, 11, 1.3); paint(c, fillLin(c, 3, 8, 8, 19, '#2e2822', '#14120e'), '#100c08', 1);
+  blob(c, -5.4, 19.4, 2.8, 1.4); paint(c, '#1a1610', '#0c0806', 0.7);
+  blob(c, 5.8, 19.4, 2.8, 1.4); paint(c, '#1a1610', '#0c0806', 0.7);
+  blob(c, 0, 2.4, 13.2, 12.2); paint(c, fillLin(c, -10, -8, 10, 14, '#4a443c', '#1e1a16'), '#12100c', 1.6);
+  rr(c, -13, -6, 26, 13, 2.4); paint(c, fillLin(c, -13, -6, 10, 8, '#5a544c', '#2a2620'), '#16120e', 1.4);
+  glint(c, -5, -3, 4, 2, 0.16);
+  rivet(c, -8, -1); rivet(c, 2, -2); rivet(c, 9, 0);
   c.beginPath();
-  c.moveTo(-12, -6); c.lineTo(-16, -2); c.lineTo(-12, 4); c.lineTo(-8, 0);
+  c.moveTo(-14, -4); c.lineTo(-18, 2); c.lineTo(-12, 10); c.lineTo(-8, 2);
   c.closePath();
-  paint(c, fillLin(c, -16, -6, -8, 4, '#8a7a64', '#3a3428'), '#1a140c', 1);
+  paint(c, fillLin(c, -18, -4, -8, 10, '#4a443c', '#1a1612'), '#100c08', 1.2);
+  c.strokeStyle = '#2a2018'; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(-16, 0); c.lineTo(-10, 6); c.stroke();
   c.save();
-  c.translate(15, 2);
-  c.rotate(0.18);
-  c.fillStyle = fillLin(c, -2, -16, 2, 14, '#6a4a28', '#2a1c10');
-  c.fillRect(-2.1, -14, 4.2, 28);
-  c.strokeStyle = '#1a1008'; c.lineWidth = 1; c.strokeRect(-2.1, -14, 4.2, 28);
-  c.strokeStyle = 'rgba(30,16,8,0.3)'; c.lineWidth = 0.7;
-  c.beginPath(); c.moveTo(-0.6, -12); c.lineTo(-0.2, 12); c.stroke();
-  blob(c, 0, -17, 7.2, 6.2); paint(c, fillRad(c, -2, -19, 1, 7.5, '#8a8478', '#3a342c'), '#1a140c', 1.3);
-  glint(c, -2, -19, 2.2, 1.4, 0.28);
+  c.translate(14, 2); c.rotate(0.2);
+  c.fillStyle = fillLin(c, -2, -14, 2, 12, '#3a2a1c', '#1a1008');
+  c.fillRect(-1.8, -12, 3.6, 24);
+  blob(c, 0, -15, 6.4, 4.8); paint(c, fillRad(c, -1.5, -17, 1, 6.5, '#6a6458', '#2a241c'), '#12100c', 1.2);
   c.restore();
-  drawFace(c, 5.5, -13.2, 7.2, 6.8, {
-    skin: '#c89868', deep: '#6a4030', eye: '#2a1c10', brow: 'rgba(50,28,16,0.55)',
-    beard: '#4a3424', beardD: '#1e140c', lid: 'rgba(70,40,24,0.4)'
+  drawFace(c, 4.8, -12.6, 6.4, 6.0, {
+    skin: '#a08060', deep: '#5a4030', eye: '#1a140c', brow: 'rgba(30,16,10,0.55)',
+    lid: 'rgba(40,20,12,0.4)'
   });
-  rr(c, -2, -20.5, 12, 5, 1.4); paint(c, fillLin(c, -2, -20, 8, -16, '#6a6458', '#2a241c'), '#1a140c', 1.1);
-  rivet(c, 1, -18); rivet(c, 7, -18);
+  rr(c, -2, -19.5, 11, 5, 1.2); paint(c, fillLin(c, -2, -20, 8, -15, '#3a3630', '#16120e'), '#100c08', 1);
 }
 
-function drawNightwing(c, e) {
-  const flap = Math.sin(e.bob) * 5.5;
+function drawCorrKnight(c) {
+  rr(c, -8, 9, 5.2, 12, 1.3); paint(c, fillLin(c, -8, 9, -3, 21, '#3a3430', '#16120e'), '#100c08', 1);
+  rr(c, 3, 9, 5.2, 12, 1.3); paint(c, fillLin(c, 3, 9, 8, 21, '#2e2824', '#12100c'), '#100c08', 1);
+  blob(c, 0, 3, 14.2, 13.4); paint(c, fillLin(c, -12, -8, 12, 16, '#4a4440', '#1a1612'), '#100c08', 1.7);
+  rr(c, -14, -8, 28, 15, 3); paint(c, fillLin(c, -14, -8, 10, 8, '#6a645c', '#2a2620'), '#16120e', 1.4);
+  glint(c, -6, -4, 5, 2, 0.18);
+  rivet(c, -8, -2); rivet(c, 2, -3); rivet(c, 10, -1);
+  c.strokeStyle = '#1a2414'; c.lineWidth = 1.6;
   c.beginPath();
-  c.moveTo(-2, 1);
-  c.quadraticCurveTo(-18, -12 - flap, -27, 3);
-  c.quadraticCurveTo(-14, 7, -2, 4);
-  c.closePath();
-  paint(c, fillLin(c, -8, -14, -8, 8, '#5a4468', '#1a1020'), '#120c18', 1.3);
-  c.beginPath();
-  c.moveTo(2, 1);
-  c.quadraticCurveTo(18, -12 - flap, 27, 3);
-  c.quadraticCurveTo(14, 7, 2, 4);
-  c.closePath();
-  paint(c, fillLin(c, 8, -14, 8, 8, '#4a3858', '#16101c'), '#120c18', 1.3);
-  c.strokeStyle = 'rgba(20,10,24,0.5)';
-  c.lineWidth = 1;
-  c.beginPath();
-  c.moveTo(0, 1); c.lineTo(-22, -3 - flap * 0.45);
-  c.moveTo(0, 1); c.lineTo(22, -3 - flap * 0.45);
-  c.moveTo(-6, 2); c.lineTo(-18, 2 - flap * 0.2);
-  c.moveTo(6, 2); c.lineTo(18, 2 - flap * 0.2);
+  c.moveTo(-10, 4); c.quadraticCurveTo(-16, 10, -8, 16);
+  c.moveTo(8, 2); c.quadraticCurveTo(14, 10, 6, 16);
   c.stroke();
-  blob(c, 0, 1.2, 6.4, 5.6); paint(c, fillRad(c, -1.5, -1, 0.8, 7, '#4a3854', '#1a1020'), '#100c14', 1.4);
-  c.beginPath(); c.moveTo(-2.2, -4.2); c.lineTo(-4.6, -11); c.lineTo(-0.2, -5); c.closePath();
-  paint(c, '#2a1c30', '#100c14', 0.8);
-  c.beginPath(); c.moveTo(2.4, -4.2); c.lineTo(5.2, -11.2); c.lineTo(0.8, -5); c.closePath();
-  paint(c, '#2a1c30', '#100c14', 0.8);
-  drawFace(c, 1.2, 0.4, 4.6, 4.2, {
-    skin: '#6a5478', deep: '#2a1c34', eye: '#e8b428', white: '#3a2a18',
-    brow: 'rgba(20,10,24,0.55)', lip: 'rgba(80,30,40,0.5)', noEar: true
+  c.save();
+  c.translate(15, 0); c.rotate(-0.4);
+  c.fillStyle = fillLin(c, 0, -2, 0, 2, '#8a8478', '#3a342c');
+  c.fillRect(0, -2, 22, 4);
+  c.beginPath(); c.moveTo(20, -6); c.lineTo(30, 0); c.lineTo(20, 6); c.closePath();
+  paint(c, fillLin(c, 20, -6, 30, 6, '#b0a898', '#4a443c'), '#1a140c', 1.2);
+  c.restore();
+  drawFace(c, 5.2, -14, 6.8, 6.4, {
+    skin: '#8a7060', deep: '#4a3030', eye: '#6aaa50', white: '#2a2018',
+    brow: 'rgba(20,10,10,0.6)', lid: 'rgba(30,12,12,0.45)'
   });
-  c.fillStyle = '#f0d8c0';
-  c.beginPath(); c.moveTo(2.6, 3.4); c.lineTo(4.8, 5.8); c.lineTo(3.2, 3.8); c.closePath(); c.fill();
-  c.beginPath(); c.moveTo(0.4, 3.6); c.lineTo(-0.6, 5.6); c.lineTo(1.2, 3.8); c.closePath(); c.fill();
+  rr(c, -3, -23, 14, 8, 2); paint(c, fillLin(c, -3, -23, 10, -16, '#4a443c', '#1a1612'), '#100c08', 1.2);
+  c.beginPath(); c.moveTo(-1, -22); c.lineTo(-6, -30); c.lineTo(3, -22); c.closePath();
+  paint(c, '#1a2414', '#0c100c', 1);
 }
 
-function drawMarrow(c) {
-  rr(c, -12, 14, 8, 14, 2); paint(c, fillLin(c, -12, 14, -5, 28, '#4a2024', '#1a0c0c'), '#120808', 1.2);
-  rr(c, 4, 14, 8, 14, 2); paint(c, fillLin(c, 4, 14, 11, 28, '#3a181c', '#140808'), '#120808', 1.2);
-  blob(c, -8, 28.2, 4.4, 2); paint(c, '#2a1414', '#100808', 0.8);
-  blob(c, 8, 28.2, 4.4, 2); paint(c, '#2a1414', '#100808', 0.8);
+function drawWight(c, e) {
+  const pulse = 0.55 + Math.sin((e.bob || 0) * 1.4) * 0.2;
+  rr(c, -8, 10, 5, 10, 1.2); paint(c, fillLin(c, -8, 10, -3, 20, '#2a3228', '#101410'), '#0c100c', 1);
+  rr(c, 3, 10, 5, 10, 1.2); paint(c, fillLin(c, 3, 10, 8, 20, '#222a20', '#0e120e'), '#0c100c', 1);
+  blob(c, 0, 3, 13.5, 12.5); paint(c, fillLin(c, -10, -8, 10, 14, '#3a4438', '#141810'), '#10140c', 1.6);
+  c.globalAlpha = pulse;
+  c.strokeStyle = '#1a2414';
+  c.lineWidth = 2;
   c.beginPath();
-  c.moveTo(-8, -6); c.quadraticCurveTo(-28, 8, -10, 26); c.lineTo(12, 22); c.quadraticCurveTo(8, 4, 4, -4);
-  c.closePath();
-  paint(c, fillLin(c, -16, -8, 8, 24, '#4a1c28', '#1a0a10'), '#120808', 1.6);
-  blob(c, 0, 4, 20, 17.5); paint(c, fillLin(c, -16, -10, 14, 20, '#8a343c', '#3a1418'), '#1a0c0c', 2.2);
-  rr(c, -18, -6, 36, 16, 3); paint(c, fillLin(c, -18, -6, 14, 10, '#8a8478', '#3a342c'), '#1a140c', 1.6);
-  glint(c, -8, -2, 7, 3, 0.22);
-  rivet(c, -10, 0); rivet(c, 2, -2); rivet(c, 12, 1);
-  c.fillStyle = '#e6b423';
-  c.font = '700 10px Palatino, serif';
-  c.textAlign = 'center';
-  c.fillText('M', 0, 8);
-  c.save();
-  c.translate(18, -2);
-  c.rotate(-0.55);
-  c.fillStyle = fillLin(c, 0, -3, 0, 3, '#d8d0c0', '#6a6458');
-  c.fillRect(0, -2.4, 30, 4.8);
-  c.strokeStyle = '#1a140c'; c.lineWidth = 1.2; c.strokeRect(0, -2.4, 30, 4.8);
-  c.beginPath(); c.moveTo(28, -7); c.lineTo(42, 0); c.lineTo(28, 7); c.closePath();
-  paint(c, fillLin(c, 28, -7, 42, 7, '#f0e8d8', '#7a7064'), '#1a140c', 1.3);
-  glint(c, 34, -2, 3, 1.4, 0.28);
-  c.restore();
-  drawFace(c, 7, -17, 9.2, 8.4, {
-    skin: '#c8a090', deep: '#6a3038', eye: '#e8c040', white: '#4a2024',
-    brow: 'rgba(40,16,16,0.6)', lip: 'rgba(80,24,24,0.5)', lid: 'rgba(40,16,16,0.45)'
+  c.moveTo(-10, -2); c.quadraticCurveTo(-4, 8, 2, 14);
+  c.moveTo(8, -4); c.quadraticCurveTo(4, 6, -2, 14);
+  c.stroke();
+  c.globalAlpha = 1;
+  drawFace(c, 3.6, -12.4, 6.6, 6.2, {
+    skin: '#8a9a78', deep: '#3a4a30', eye: '#8acc60', white: '#1a2014',
+    brow: 'rgba(20,28,16,0.5)', lip: 'rgba(20,30,16,0.4)', lid: 'rgba(20,28,16,0.4)'
   });
-  rr(c, -4, -28, 18, 10, 2.4); paint(c, fillLin(c, -4, -28, 12, -18, '#5a5450', '#2a201c'), '#1a0c0c', 1.4);
-  c.beginPath(); c.moveTo(-2, -26); c.lineTo(-10, -38); c.lineTo(3, -26); c.closePath();
-  paint(c, fillLin(c, -6, -38, 0, -26, '#4a2a22', '#1a0c0c'), '#120808', 1.2);
-  c.beginPath(); c.moveTo(12, -26); c.lineTo(18, -36); c.lineTo(16, -24); c.closePath();
-  paint(c, fillLin(c, 14, -36, 16, -24, '#4a2a22', '#1a0c0c'), '#120808', 1.2);
-  glint(c, 2, -25, 3, 1.4, 0.2);
+  c.beginPath();
+  c.moveTo(-8, -14); c.quadraticCurveTo(2, -24, 12, -12); c.lineTo(8, -8); c.quadraticCurveTo(2, -14, -6, -10);
+  c.closePath();
+  paint(c, fillLin(c, 0, -24, 4, -8, '#1a2014', '#0a0c08'), '#080a06', 1.2);
+}
+
+function drawHound(c, e) {
+  const bob = Math.sin(e.bob || 0) * 1.4;
+  c.translate(0, bob);
+  rr(c, -10, 4, 18, 7, 2.4); paint(c, fillLin(c, -10, 4, 8, 12, '#1a1614', '#0a0808'), '#080604', 1.3);
+  rr(c, -8, 10, 4, 6, 1); paint(c, '#141010', '#080604', 0.8);
+  rr(c, 4, 10, 4, 6, 1); paint(c, '#141010', '#080604', 0.8);
+  blob(c, 10, 2, 6.2, 4.6); paint(c, fillLin(c, 8, -1, 14, 6, '#221c1a', '#0c0a0a'), '#080604', 1.1);
+  c.fillStyle = '#6aaa50';
+  c.beginPath(); c.ellipse(12.4, 1.2, 1.1, 1.3, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.ellipse(10.2, 1.0, 0.9, 1.1, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#2a2018';
+  c.lineWidth = 1.4;
+  c.beginPath();
+  c.moveTo(-2, -2); c.lineTo(-6, -10);
+  c.moveTo(2, -1); c.lineTo(0, -9);
+  c.moveTo(6, 0); c.lineTo(8, -8);
+  c.stroke();
+  c.fillStyle = '#1a1410';
+  c.beginPath(); c.moveTo(14, 2); c.lineTo(18, 4); c.lineTo(14, 5); c.closePath(); c.fill();
+}
+
+function drawChampion(c) {
+  rr(c, -10, 12, 6.4, 13, 1.6); paint(c, fillLin(c, -10, 12, -4, 25, '#2a2218', '#100c08'), '#0c0806', 1.1);
+  rr(c, 4, 12, 6.4, 13, 1.6); paint(c, fillLin(c, 4, 12, 10, 25, '#221a14', '#0e0a08'), '#0c0806', 1.1);
+  blob(c, 0, 4, 17.5, 16); paint(c, fillLin(c, -14, -10, 14, 18, '#3a2e24', '#16120c'), '#100c08', 1.8);
+  rr(c, -16, -8, 32, 16, 3); paint(c, fillLin(c, -16, -8, 12, 10, '#4a4034', '#221c16'), '#14100c', 1.5);
+  c.strokeStyle = '#1a2414'; c.lineWidth = 2.2;
+  c.beginPath();
+  c.moveTo(-12, 0); c.quadraticCurveTo(-20, 10, -8, 20);
+  c.moveTo(12, -2); c.quadraticCurveTo(22, 8, 8, 20);
+  c.moveTo(0, -8); c.quadraticCurveTo(4, 6, 2, 18);
+  c.stroke();
+  c.save();
+  c.translate(18, 2); c.rotate(0.15);
+  c.fillStyle = fillLin(c, -2, -18, 2, 16, '#2a1c10', '#100c08');
+  c.fillRect(-2.2, -16, 4.4, 30);
+  blob(c, 0, -20, 8.4, 7); paint(c, fillRad(c, -2, -22, 1, 8, '#4a4034', '#1a1410'), '#100c08', 1.2);
+  c.restore();
+  drawFace(c, 5, -16, 8.2, 7.4, {
+    skin: '#7a6048', deep: '#3a281c', eye: '#8acc50', white: '#2a2014',
+    brow: 'rgba(20,12,8,0.6)', beard: '#2a2018', beardD: '#100c08', lid: 'rgba(30,16,10,0.4)'
+  });
+  c.beginPath();
+  c.moveTo(-4, -22); c.lineTo(-10, -34); c.lineTo(2, -22);
+  c.closePath();
+  paint(c, '#1a2414', '#0c100c', 1.1);
+}
+
+function drawDrake(c, e) {
+  const flap = Math.sin(e.bob || 0) * 3;
+  rr(c, -14, 16, 10, 14, 2); paint(c, fillLin(c, -14, 16, -4, 30, '#1a2014', '#0c100c'), '#080a06', 1.2);
+  rr(c, 4, 16, 10, 14, 2); paint(c, fillLin(c, 4, 16, 14, 30, '#161c12', '#0a0c08'), '#080a06', 1.2);
+  blob(c, 0, 6, 22, 18); paint(c, fillLin(c, -18, -10, 16, 22, '#2a3224', '#10140c'), '#0c1008', 2);
+  c.beginPath();
+  c.moveTo(-8, -4); c.quadraticCurveTo(-28, -16 - flap, -34, 4); c.quadraticCurveTo(-16, 8, -6, 4);
+  c.closePath();
+  paint(c, fillLin(c, -20, -16, -8, 8, '#1a2418', '#0a1008'), '#080a06', 1.3);
+  c.beginPath();
+  c.moveTo(18, -2); c.lineTo(36, 2); c.lineTo(18, 8);
+  c.closePath();
+  paint(c, fillLin(c, 18, -2, 36, 8, '#2a3220', '#10140c'), '#0c1008', 1.2);
+  c.strokeStyle = '#1a2414'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-6, 0); c.lineTo(-12, -16); c.moveTo(6, -2); c.lineTo(4, -18); c.stroke();
+  drawFace(c, 8, -12, 9, 7.6, {
+    skin: '#4a5a38', deep: '#1a2414', eye: '#8acc50', white: '#1a2010',
+    brow: 'rgba(10,16,8,0.6)', noEar: true, lid: 'rgba(16,24,12,0.45)'
+  });
+  c.fillStyle = '#c8d8a0';
+  c.beginPath(); c.moveTo(12, -4); c.lineTo(18, 0); c.lineTo(12, 1); c.closePath(); c.fill();
+}
+
+function drawMordred(c, e) {
+  const glow = 0.28 + Math.sin((e.bob || 0) * 2) * 0.12;
+  c.globalAlpha = 0.35;
+  blob(c, 0, 2, 26, 22); paint(c, '#6aaa60', '#6aaa60', 0);
+  c.globalAlpha = 1;
+  rr(c, -10, 14, 7, 13, 1.6); paint(c, fillLin(c, -10, 14, -3, 27, '#1a1820', '#0c0a10'), '#08080c', 1.1);
+  rr(c, 4, 14, 7, 13, 1.6); paint(c, fillLin(c, 4, 14, 11, 27, '#16141c', '#0a0810'), '#08080c', 1.1);
+  blob(c, 0, 4, 18, 16); paint(c, fillLin(c, -14, -10, 14, 20, '#2a2434', '#100c18'), '#0c0a10', 1.8);
+  c.globalAlpha = glow;
+  blob(c, 6, -4, 10, 8); paint(c, '#8acc70', '#8acc70', 0);
+  c.globalAlpha = 1;
+  c.save();
+  c.translate(16, -2); c.rotate(-0.5);
+  c.fillStyle = fillLin(c, 0, -2, 0, 2, '#c8d0c0', '#4a5048');
+  c.fillRect(0, -2, 24, 4);
+  c.beginPath(); c.moveTo(22, -7); c.lineTo(34, 0); c.lineTo(22, 7); c.closePath();
+  paint(c, fillLin(c, 22, -7, 34, 7, '#e8f0d8', '#5a6050'), '#1a140c', 1.2);
+  c.restore();
+  drawFace(c, 6, -16, 8.6, 8, {
+    skin: '#b0a898', deep: '#4a3848', eye: '#b8f080', white: '#2a2030',
+    brow: 'rgba(20,10,20,0.6)', lid: 'rgba(30,16,30,0.45)'
+  });
+  c.beginPath();
+  c.moveTo(-6, -22); c.lineTo(-2, -34); c.lineTo(4, -22); c.lineTo(10, -32); c.lineTo(14, -20);
+  c.closePath();
+  paint(c, fillLin(c, 0, -34, 8, -20, '#2a2430', '#0c0a10'), '#08080c', 1.2);
 }
 
 function drawHeroWorld(c, h) {
@@ -1875,7 +2255,7 @@ function drawHeroFigure(c, x, y, id, s, swing, facing, down) {
   const arm = swing ? -1.05 : -0.22;
   contactShadow(c, 1, 18, id === 'papa' ? 13 : 10, 4);
   if (id === 'julian') drawJulian(c, arm);
-  else if (id === 'shadow') drawShadow(c, arm);
+  else if (id === 'austin') drawAustin(c, arm);
   else drawPapa(c, arm);
   c.restore();
 }
@@ -1884,54 +2264,56 @@ function drawJulian(c, arm) {
   c.beginPath();
   c.moveTo(-2, -8); c.quadraticCurveTo(-26, 6, -16, 24); c.lineTo(8, 16); c.quadraticCurveTo(6, 2, 3, -6);
   c.closePath();
-  paint(c, fillLin(c, -22, -8, 4, 22, '#3a5aaa', '#0c1834'), '#0a1020', 1.8);
-  clothFold(c, -10, 0, -8, 16, 'rgba(8,12,28,0.35)');
-  rr(c, -6, 7, 4.4, 12, 1.2); paint(c, fillLin(c, -6, 7, -2, 19, '#2a2e3a', '#0c1018'), '#080a10', 1);
-  rr(c, 2, 7, 4.4, 12, 1.2); paint(c, fillLin(c, 2, 7, 6, 19, '#1e222c', '#0a0c12'), '#080a10', 1);
-  blob(c, -3.6, 19.4, 2.6, 1.3); paint(c, fillLin(c, -5, 18, -2, 21, '#3a404c', '#12141a'), '#080a10', 0.8);
-  blob(c, 4.4, 19.4, 2.6, 1.3); paint(c, fillLin(c, 3, 18, 6, 21, '#3a404c', '#12141a'), '#080a10', 0.8);
-  rr(c, -11, -11, 22, 22, 3.2); paint(c, fillLin(c, -11, -11, 9, 11, '#2e3340', '#10141c'), '#0a1020', 1.8);
-  glint(c, -4, -6, 5, 2.4, 0.22);
+  paint(c, fillLin(c, -22, -8, 4, 22, '#c42830', '#6a1418'), '#3a0c10', 1.8);
+  clothFold(c, -10, 0, -8, 16, 'rgba(80,16,16,0.35)');
+  c.beginPath();
+  c.moveTo(-18, 4); c.quadraticCurveTo(-10, 14, -6, 20); c.lineTo(2, 16); c.quadraticCurveTo(-2, 8, -4, 2);
+  c.closePath();
+  paint(c, fillLin(c, -16, 2, -4, 20, '#e6c040', '#8a6818'), '#5a4010', 1.1);
+  rr(c, -6, 7, 4.4, 12, 1.2); paint(c, fillLin(c, -6, 7, -2, 19, '#8a8478', '#3a3630'), '#1a1610', 1);
+  rr(c, 2, 7, 4.4, 12, 1.2); paint(c, fillLin(c, 2, 7, 6, 19, '#7a7468', '#2e2a24'), '#1a1610', 1);
+  blob(c, -3.6, 19.4, 2.6, 1.3); paint(c, fillLin(c, -5, 18, -2, 21, '#4a4034', '#1a1610'), '#100c08', 0.8);
+  blob(c, 4.4, 19.4, 2.6, 1.3); paint(c, fillLin(c, 3, 18, 6, 21, '#4a4034', '#1a1610'), '#100c08', 0.8);
+  rr(c, -11, -11, 22, 22, 3.2); paint(c, fillLin(c, -11, -11, 9, 11, '#d0c8b8', '#6a6458'), '#2a241c', 1.8);
+  glint(c, -4, -6, 5, 2.4, 0.28);
   c.beginPath(); c.moveTo(-8, -8); c.lineTo(8, -8); c.lineTo(6.4, 3); c.lineTo(-6.2, 3); c.closePath();
-  paint(c, fillLin(c, 0, -8, 0, 4, '#4a5a7a', '#1a2438'), '#0a1020', 1.1);
+  paint(c, fillLin(c, 0, -8, 0, 4, '#e8e0d0', '#7a7468'), '#2a241c', 1.1);
   rivet(c, -6, -2); rivet(c, 5, -2);
   c.save();
-  c.translate(-14, 3);
-  c.beginPath(); c.moveTo(-11, -9); c.lineTo(8, -5); c.lineTo(8, 13); c.lineTo(-9, 11); c.closePath();
-  paint(c, fillLin(c, -11, -9, 8, 13, '#4a68b8', '#1a2a58'), '#0a1020', 1.4);
-  c.strokeStyle = '#d0dcff'; c.lineWidth = 1; c.stroke();
-  c.fillStyle = '#d8e4ff';
-  c.font = '700 7px Palatino, serif';
+  c.translate(-13, 4);
+  blob(c, 0, 0, 7.2, 7.2); paint(c, fillRad(c, -2, -2, 1, 7.5, '#f0d060', '#8a6818'), '#3a2a0c', 1.3);
+  c.fillStyle = '#1a140c';
+  c.font = '700 6px Palatino, serif';
   c.textAlign = 'center';
-  c.fillText('777', -1, 5);
-  glint(c, -4, -4, 2.4, 1.2, 0.22);
+  c.fillText('777', 0, 2.2);
+  glint(c, -2, -2, 2, 1, 0.28);
   c.restore();
   drawFace(c, 1.2, -20.4, 7.4, 7.2, {
-    skin: '#e4bc94', deep: '#8a5a3c', eye: '#2a3a58', brow: 'rgba(50,28,16,0.5)',
+    skin: '#e4bc94', deep: '#8a5a3c', eye: '#3a2a18', brow: 'rgba(50,28,16,0.5)',
     lid: 'rgba(70,40,24,0.35)', lip: 'rgba(90,40,32,0.42)'
   });
-  rr(c, -8, -31, 17, 11, 2.6); paint(c, fillLin(c, -8, -31, 8, -20, '#3a404c', '#10141c'), '#0a1020', 1.4);
-  c.beginPath(); c.rect(-2.2, -30, 2.2, 8); paint(c, '#8a96a8', '#0a1020', 0.8);
+  rr(c, -8, -31, 17, 11, 2.6); paint(c, fillLin(c, -8, -31, 8, -20, '#c8c0b0', '#5a5448'), '#2a241c', 1.4);
+  c.beginPath(); c.rect(-2.2, -30, 2.2, 8); paint(c, '#e6c040', '#3a2a0c', 0.8);
   c.beginPath(); c.moveTo(3, -30.4); c.quadraticCurveTo(18, -46, 7, -28); c.quadraticCurveTo(8, -32, 3, -30.4);
-  paint(c, fillLin(c, 6, -46, 8, -28, '#6a92d8', '#1a3a78'), '#0a1020', 1.3);
+  paint(c, fillLin(c, 6, -46, 8, -28, '#d03038', '#6a1418'), '#3a0c10', 1.3);
   glint(c, -2, -28, 2.6, 1.2, 0.24);
   c.save();
   c.translate(12, 0);
   c.rotate(arm);
-  rr(c, -1, -3.2, 8, 6.2, 1.4); paint(c, fillLin(c, -1, -3, 6, 3, '#3a4458', '#141820'), '#0a1020', 1);
-  c.fillStyle = fillLin(c, 6, -2.4, 6, 2.4, '#dce4f0', '#6a7484');
+  rr(c, -1, -3.2, 8, 6.2, 1.4); paint(c, fillLin(c, -1, -3, 6, 3, '#c8c0b0', '#5a5448'), '#2a241c', 1);
+  c.fillStyle = fillLin(c, 6, -2.4, 6, 2.4, '#e8e4d8', '#7a7468');
   c.fillRect(7, -2.1, 22, 4.2);
-  c.strokeStyle = '#0a1020'; c.lineWidth = 1.3; c.strokeRect(7, -2.1, 22, 4.2);
+  c.strokeStyle = '#2a241c'; c.lineWidth = 1.3; c.strokeRect(7, -2.1, 22, 4.2);
   c.fillStyle = '#8a6a44';
   c.fillRect(10, -1.15, 10, 2.3);
   c.beginPath(); c.moveTo(28, -6.4); c.lineTo(40, 0); c.lineTo(28, 6.4); c.closePath();
-  paint(c, fillLin(c, 28, -6, 40, 6, '#f4f8ff', '#7a8494'), '#0a1020', 1.3);
+  paint(c, fillLin(c, 28, -6, 40, 6, '#f4f0e4', '#8a8478'), '#2a241c', 1.3);
   glint(c, 33, -1.4, 2.4, 1.1, 0.32);
-  blob(c, 6.2, 0, 2.2, 2.2); paint(c, fillRad(c, 5.4, -0.6, 0.3, 2.3, '#c8d0dc', '#4a5464'), '#0a1020', 0.8);
+  blob(c, 6.2, 0, 2.2, 2.2); paint(c, fillRad(c, 5.4, -0.6, 0.3, 2.3, '#e6c040', '#6a4814'), '#2a1c08', 0.8);
   c.restore();
 }
 
-function drawShadow(c, arm) {
+function drawAustin(c, arm) {
   c.beginPath();
   c.moveTo(-8, -10);
   c.quadraticCurveTo(-26, 8, -9, 24);
@@ -1971,10 +2353,11 @@ function drawShadow(c, arm) {
   c.strokeStyle = '#0a0810'; c.lineWidth = 1.15; c.strokeRect(-2.3, -18, 4.6, 28);
   c.strokeStyle = 'rgba(30,16,8,0.3)'; c.lineWidth = 0.7;
   c.beginPath(); c.moveTo(-0.7, -16); c.lineTo(0.2, 8); c.stroke();
-  blob(c, 0, -22.5, 9.2, 7.2); paint(c, fillRad(c, -2.4, -25, 1, 9.4, '#8a8490', '#2a2430'), '#0a0810', 1.4);
-  glint(c, -2.6, -25, 2.6, 1.5, 0.28);
-  c.fillStyle = 'rgba(216,180,255,0.32)';
-  c.beginPath(); c.arc(-2.2, -24.6, 2.1, 0, Math.PI * 2); c.fill();
+  blob(c, 0, -23, 8.4, 8.6); paint(c, fillRad(c, -2.2, -26, 1, 9, '#3a3438', '#121014'), '#0a0810', 1.4);
+  [[-3.2, -26.4], [2.6, -26], [-3.6, -21.6], [2.8, -21.2]].forEach(([x, y]) => {
+    blob(c, x, y, 2.1, 2.4); paint(c, fillRad(c, x - 0.6, y - 0.8, 0.3, 2.4, '#5a5458', '#1a1618'), '#0a0810', 0.7);
+  });
+  glint(c, -2.2, -26.2, 1.8, 1.1, 0.22);
   c.restore();
 }
 
@@ -1983,9 +2366,9 @@ function drawPapa(c, arm) {
   rr(c, 3, 7, 5.6, 12, 1.4); paint(c, fillLin(c, 3, 7, 8, 19, '#5a3a22', '#24180c'), '#1a1008', 1);
   blob(c, -5, 19.5, 3.2, 1.5); paint(c, fillLin(c, -6, 18, -3, 21, '#4a301c', '#1a1008'), '#140c08', 0.8);
   blob(c, 6, 19.5, 3.2, 1.5); paint(c, fillLin(c, 5, 18, 8, 21, '#4a301c', '#1a1008'), '#140c08', 0.8);
-  blob(c, 0, 3.4, 14.8, 12.6); paint(c, fillLin(c, -12, -6, 12, 15, '#a87844', '#5a381c'), '#2a180c', 1.8);
-  clothFold(c, -6, 0, -3, 10, 'rgba(40,24,10,0.3)');
-  rr(c, -13, -9, 18, 18, 3.4); paint(c, fillLin(c, -13, -9, 4, 9, '#e8c848', '#8a6818'), '#3a2a0c', 1.5);
+  blob(c, 0, 3.4, 14.8, 12.6); paint(c, fillLin(c, -12, -6, 12, 15, '#8a9a78', '#3a4a30'), '#1a2410', 1.8);
+  clothFold(c, -6, 0, -3, 10, 'rgba(20,28,14,0.3)');
+  rr(c, -13, -9, 18, 18, 3.4); paint(c, fillLin(c, -13, -9, 4, 9, '#b8c4a0', '#5a6a48'), '#2a3020', 1.5);
   glint(c, -6, -5, 4, 2, 0.2);
   c.beginPath(); c.moveTo(-10, -2); c.lineTo(3, -2);
   c.strokeStyle = 'rgba(60,40,10,0.32)'; c.lineWidth = 1; c.stroke();
@@ -2003,8 +2386,8 @@ function drawPapa(c, arm) {
   c.beginPath();
   c.moveTo(-5.4, -21); c.quadraticCurveTo(2, -27, 9.6, -20.4); c.lineTo(8, -16.8); c.quadraticCurveTo(2, -21, -4.2, -17.2);
   c.closePath();
-  paint(c, fillLin(c, 2, -27, 2, -17, '#6a4a28', '#3a2814'), '#1a1008', 1.1);
-  c.fillStyle = '#4a301c';
+  paint(c, fillLin(c, 2, -27, 2, -17, '#2a4a28', '#142814'), '#0c180c', 1.1);
+  c.fillStyle = '#1a3018';
   c.beginPath(); c.arc(-1.6, -21.4, 2.3, 0, Math.PI * 2); c.arc(4.4, -22, 2.5, 0, Math.PI * 2); c.fill();
   c.save();
   c.translate(13, 1);
@@ -2174,9 +2557,9 @@ function selectHero(h, fromSeq) {
   if (fromSeq) {
     state.heroSeq.push(h.id);
     if (state.heroSeq.length > 3) state.heroSeq.shift();
-    if (state.heroSeq[0] === 'julian' && state.heroSeq[1] === 'shadow' && state.heroSeq[2] === 'papa') {
+    if (state.heroSeq[0] === 'julian' && state.heroSeq[1] === 'austin' && state.heroSeq[2] === 'papa') {
       state.heroSeq = [];
-      if (state.tripleCd <= 0) fireTriple('Julian, Shadow Aussie, Papa — 7 / 7 / 7.');
+      if (state.tripleCd <= 0) fireTriple('Julian, Austin, Papa — 7 / 7 / 7.');
       else { addGold(7); toast('A quiet 7 for the three.'); }
     }
   }
@@ -2200,7 +2583,7 @@ function setCdBar(btn, remaining, max) {
 
 function syncHeroUI() {
   const sel = state.selected && state.selected.kind === 'hero' ? state.selected.ref : null;
-  ['julian', 'shadow', 'papa'].forEach((id) => {
+  ['julian', 'austin', 'papa'].forEach((id) => {
     const btn = $('#hb' + id[0].toUpperCase() + id.slice(1));
     const h = state.heroes.find((x) => x.id === id);
     if (!btn || !h) return;
@@ -2336,9 +2719,9 @@ function startPlay(difficulty) {
   showHud(true);
   resize();
   paintMini('julian', $('#hbJulian .mini'));
-  paintMini('shadow', $('#hbShadow .mini'));
+  paintMini('austin', $('#hbAustin .mini'));
   paintMini('papa', $('#hbPapa .mini'));
-  toast(currentLevel().name + '. ' + (isVeteran() ? 'Veteran siege. Foes run thicker.' : 'Standard siege. Sir Julian the Brave stands at the gate.'));
+  toast(currentLevel().name + '. ' + (isVeteran() ? 'Veteran siege. Foes run thicker.' : 'Standard siege. Julian the Lionhearted holds the south.'));
 }
 
 function pauseGame() {
@@ -2407,7 +2790,7 @@ function bindUI() {
     if (!state.selected || state.selected.kind !== 'hero') selectHero(sel, false);
     useAbility(sel);
   };
-  ['julian', 'shadow', 'papa'].forEach((id) => {
+  ['julian', 'austin', 'papa'].forEach((id) => {
     const btn = $('#hb' + id[0].toUpperCase() + id.slice(1));
     btn.onclick = () => {
       const h = state.heroes.find((x) => x.id === id);
@@ -2465,6 +2848,6 @@ resize();
 resetRun();
 showHud(false);
 paintMini('julian', $('#hbJulian .mini'));
-paintMini('shadow', $('#hbShadow .mini'));
+paintMini('austin', $('#hbAustin .mini'));
 paintMini('papa', $('#hbPapa .mini'));
 requestAnimationFrame(loop);

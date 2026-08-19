@@ -257,10 +257,10 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 }
 h1 {
   margin: 4px 0 6px;
-  font: 700 clamp(52px, 10vw, 84px)/.85 Palatino, serif;
-  letter-spacing: 6px;
+  font: 700 clamp(28px, 5.4vw, 46px)/1.05 Palatino, serif;
+  letter-spacing: 1.5px;
   color: #7a1c20;
-  text-shadow: 3px 3px 0 #1a140c;
+  text-shadow: 2px 2px 0 #1a140c;
 }
 h2 { margin: 0 0 10px; font: 700 26px/1.15 Palatino, serif; }
 p, li { line-height: 1.45; }
@@ -305,8 +305,9 @@ p, li { line-height: 1.45; }
 .card.win h2 { color: #7a1c20; }
 ol { padding-left: 20px; }
 ol li { margin: 10px 0; }
+#nextSpeak:empty { display: none; }
 @media (max-height: 700px) {
-  h1 { font-size: 52px; }
+  h1 { font-size: 28px; }
   .heroBtn .mini { display: none; }
   .hud { min-height: 56px; }
 }

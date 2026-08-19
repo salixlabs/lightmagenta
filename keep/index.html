@@ -6,10 +6,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Keep">
+  <meta name="apple-mobile-web-app-title" content="Camelot">
   <meta name="theme-color" content="#1b2414">
   <meta name="format-detection" content="telephone=no">
-  <title>Keep — Sir Julian the Brave</title>
+  <title>The Last Defense of Camelot</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="favicon.svg">
   <link rel="stylesheet" href="styles.css">
@@ -19,7 +19,7 @@
     <header id="hudTop" class="hud" hidden>
       <button id="btnPause" class="iconBtn" type="button" aria-label="Pause">II</button>
       <div class="brand">
-        <b>KEEP</b>
+        <b>CAMELOT</b>
         <em>777</em>
       </div>
       <div class="stat gold" id="statGold" aria-label="Gold"><i></i><strong>250</strong></div>
@@ -43,9 +43,9 @@
         <span class="role">Lionheart</span>
         <i class="cd" hidden></i>
       </button>
-      <button class="heroBtn" id="hbShadow" data-hero="shadow" type="button">
+      <button class="heroBtn" id="hbAustin" data-hero="austin" type="button">
         <canvas class="mini" width="72" height="72"></canvas>
-        <span class="name">Aussie</span>
+        <span class="name">Austin</span>
         <span class="role">Bulwark</span>
         <i class="cd" hidden></i>
       </button>
@@ -78,34 +78,34 @@
         <div class="crownRow" aria-hidden="true">
           <span>7</span><span>7</span><span>7</span>
         </div>
-        <h1>KEEP</h1>
-        <h2>Sir Julian the Brave stands at the gate.</h2>
-        <p>Three sieges on winding roads. Three heroes fight on the map — not portraits in a drawer. Build, rally, and hold the stone keep.</p>
+        <h1>The Last Defense of Camelot</h1>
+        <h2>Three knights hold the southern road.</h2>
+        <p>After the wars that forged the Round Table, a new shadow rises. Arthur and the greater knights ride north. Julian, Austin, and Papa hold the approaches while Morgan’s thorns creep toward the gate.</p>
         <ul class="cast">
-          <li><b>Sir Julian the Brave</b> — great hero, black &amp; blue, sword and Lionheart dash.</li>
-          <li><b>Shadow Aussie</b> — ninja blocker. Hammer, slows, body-blocks. Bulwark slam and a lane wall.</li>
-          <li><b>Papa</b> — stout warm guardian with a bow. Medium arrows. Volley rains stout shafts.</li>
+          <li><b>Julian the Lionhearted</b> — youngest, scarlet and gold, longsword. Mobile melee. Lionheart dash and smash.</li>
+          <li><b>Austin the Shadow</b> — true tank. Darkened plate, hammer like a fist. Enemies halt to fight him. Bulwark slam and a lane wall.</li>
+          <li><b>Papa of the Longbow</b> — veteran, green hood, yew bow. Long range, priority elites. Volley rains stout shafts.</li>
         </ul>
         <button id="btnStandard" class="primary" type="button">STANDARD</button>
         <button id="btnVeteran" class="primary veteran" type="button">VETERAN</button>
-        <small class="fine">Standard is the siege you know. Veteran foes take more hits.</small>
+        <small class="fine">Standard is the siege you know, stepping toward Camelot. Veteran foes take more hits.</small>
         <button id="btnHow" class="link" type="button">How to play</button>
         <small class="fine">iPad Safari · landscape · first tap unlocks sound</small>
-        <small class="ver" aria-label="Version 0.2.2">0.2.2</small>
+        <small class="ver" aria-label="Version 0.3.0">0.3.0</small>
       </div>
     </section>
 
     <section id="scrHow" class="scr" hidden>
       <div class="veil"></div>
       <div class="card">
-        <small class="eyebrow">THE WATCH</small>
-        <h2>Hold the winding road.</h2>
+        <small class="eyebrow">THE SOUTHERN WATCH</small>
+        <h2>Hold the road to Camelot.</h2>
         <ol>
           <li>Tap an empty pad to raise a tower. Each has two upgrades with a new trick.</li>
-          <li>Tap a hero or their portrait, then tap the path to send them. They fight on their own.</li>
-          <li>Barracks soldiers (and Aussie’s wall) body-block ground foes. Nightwings fly over.</li>
-          <li>Call the next wave early for a little gold. Three maps, each harder. The last wave of Night Gate is Marrow the Gatebreaker — if he leaks, the keep falls at once.</li>
-          <li>Title picks Standard (the siege you know) or Veteran (thicker hides). The choice lasts the whole run.</li>
+          <li>Tap a hero or their portrait, then tap the path to send them. They fight on their own. Tap again to deselect.</li>
+          <li>Barracks soldiers (and Austin’s wall) body-block ground foes. Morgan’s Hounds slip past some blockers.</li>
+          <li>Call the next wave early for a little gold. Seven maps, each more blighted. A Thorn-Drake and a shade of Mordred are bosses — if a boss leaks, the keep falls at once.</li>
+          <li>Title picks Standard (the siege you know, stepping up) or Veteran (thicker hides). The choice lasts the whole run.</li>
         </ol>
         <button id="btnHowX" class="howClose" type="button" aria-label="Close">×</button>
         <p class="whisper">There are a few warm secrets in the grass and on the banners. Nothing mean. Nothing biographical.</p>
@@ -128,7 +128,7 @@
       <div class="card">
         <small class="eyebrow">THE KEEP FALLS</small>
         <h2>The gate is breached.</h2>
-        <p id="defeatLine">Julian plants his banner in the rubble. Tomorrow, they try again.</p>
+        <p id="defeatLine">Julian plants the lion-cloak in the rubble. Tomorrow, they try again.</p>
         <button id="btnRetry" class="primary" type="button">STAND AGAIN</button>
       </div>
     </section>
@@ -136,9 +136,10 @@
     <section id="scrNext" class="scr" hidden>
       <div class="veil"></div>
       <div class="card win">
-        <small class="eyebrow">THE ROAD HOLDS</small>
+        <small class="eyebrow" id="nextEyebrow">A BREATH BETWEEN SIEGES</small>
         <h2 id="nextTitle">The next siege waits.</h2>
-        <p id="nextLine">Julian wipes the blade. Papa nocks another arrow. Aussie hefts the hammer.</p>
+        <p id="nextLine">Julian wipes the blade. Papa nocks another arrow. Austin hefts the hammer.</p>
+        <p class="whisper" id="nextSpeak"></p>
         <button id="btnNext" class="primary" type="button">NEXT SIEGE</button>
       </div>
     </section>
@@ -146,9 +147,9 @@
     <section id="scrVictory" class="scr" hidden>
       <div class="veil"></div>
       <div class="card win">
-        <small class="eyebrow">THE ROAD IS OURS</small>
-        <h2>Julian the Brave stands!</h2>
-        <p>Shadow Aussie melts back into the trees. Papa slings his bow and laughs. The keep still has all its stones.</p>
+        <small class="eyebrow">THE HORNS OF THE NORTH</small>
+        <h2>Arthur’s host is on the wind.</h2>
+        <p>The shade of Mordred breaks on the gatehouse. Julian the Lionhearted stands in scarlet and gold. Austin lowers the hammer. Papa slings the yew and laughs once. Camelot’s stones still remember their names.</p>
         <button id="btnVictory" class="primary" type="button">ONE MORE SIEGE</button>
       </div>
     </section>
