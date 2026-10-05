@@ -1,0 +1,34 @@
+---
+description: Light Magenta hub rules for deploy, game pins, DNS, and secrets.
+alwaysApply: true
+---
+
+# Light Magenta
+
+Static hub at lightmagenta.com. All changes are made by Cursor cloud agents on a branch and a pull request. Never commit or push directly to `main` (bots or people). Merging to `main` publishes the site.
+
+## Repo
+
+GitHub Pages legacy site: branch `main`, folder `/`. `CNAME` is `lightmagenta.com`. `.nojekyll` disables Jekyll. No workflow file in the repo; GitHub's `pages-build-deployment` workflow publishes `main`. HTTPS is enforced.
+
+Playable copies (do not develop the games here):
+
+- `/spartan/` from salixlabs/spartan (tile `0.5.0`)
+- `/keep/` from salixlabs/keep (tile `0.3.0`)
+- `/hammerhead/` from salixlabs/hammerhead (tile `0.2.0`)
+
+Screen Time Limit is an App Store link. The Soon tile is not a link. Neither has a version label. Copied game READMEs describe the games, not hub deploy.
+
+## Tiles and pins
+
+Playable tiles show a version only, as the text of `<span class="build">` in `index.html`. It is static; it is not read from `VERSION` at runtime. SHAs stay in that folder's `SOURCE.txt`. Soon and App Store tiles stay unlabeled.
+
+Current labels are semver. New pins use `yy.mm.x`: two-digit year, zero-padded month, release counter (`26.10.1`).
+
+A pin happens only when requested. Copy one commit's playable files (these games have no build step) and all assets into the subfolder, and in the same change set `VERSION`, `SOURCE.txt`, and the `.build` span to that version. Do not otherwise edit game source in this repo. Do not add a Pages workflow or edit `CNAME`.
+
+## DNS and secrets
+
+DNS for lightmagenta.com (Squarespace) is changed only by Chief (the Chief of Staff bot). Agents never change DNS.
+
+No tokens, passwords, API keys, or `.env` files in the repo.
